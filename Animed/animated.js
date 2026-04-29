@@ -1,18 +1,4 @@
-document.addEventListener('DOMContentLoaded', async () => {
-    // Configuración de Firebase (reemplaza con tus valores reales)
-    const firebaseConfig = {
-        apiKey: "TU_API_KEY",
-        authDomain: "TU_PROYECTO.firebaseapp.com",
-        projectId: "TU_PROYECTO",
-        storageBucket: "TU_PROYECTO.appspot.com",
-        messagingSenderId: "123456789",
-        appId: "TU_APP_ID"
-    };
-
-    // Inicializar Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
+document.addEventListener('DOMContentLoaded', () => {
     const statsCard = document.getElementById('stats-card');
     const container = document.querySelector('.container');
 
@@ -29,40 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         'arcano': { dark: '#300000', light: '#800000' }
     };
 
-    const classStats = {
-        'Vagabundo': { vigor: 12, mente: 10, resistencia: 11, fuerza: 13, destreza: 14, inteligencia: 9, fe: 9, arcano: 7 },
-        'Héroe': { vigor: 14, mente: 8, resistencia: 12, fuerza: 16, destreza: 9, inteligencia: 7, fe: 8, arcano: 11 },
-        'Confesor': { vigor: 10, mente: 14, resistencia: 10, fuerza: 12, destreza: 9, inteligencia: 11, fe: 16, arcano: 7 },
-        'Astrólogo': { vigor: 9, mente: 15, resistencia: 9, fuerza: 8, destreza: 12, inteligencia: 16, fe: 7, arcano: 8 },
-        'Samurái': { vigor: 10, mente: 12, resistencia: 11, fuerza: 12, destreza: 15, inteligencia: 9, fe: 8, arcano: 7 },
-        'Bandido': { vigor: 10, mente: 11, resistencia: 10, fuerza: 9, destreza: 13, inteligencia: 10, fe: 8, arcano: 14 },
-        'Prisionero': { vigor: 9, mente: 13, resistencia: 9, fuerza: 10, destreza: 14, inteligencia: 14, fe: 6, arcano: 9 }
-    };
 
-    const selectorData = {
-        armas: [],
-        armaduras: [],
-        talismans: []
-    };
-
-    // Función para cargar datos desde Firestore
-    async function loadSelectorData() {
-        try {
-            const armasSnapshot = await db.collection('armas').get();
-            selectorData.armas = armasSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-            const armadurasSnapshot = await db.collection('armaduras').get();
-            selectorData.armaduras = armadurasSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-            const talismansSnapshot = await db.collection('talismans').get();
-            selectorData.talismans = talismansSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        } catch (error) {
-            console.error("Error cargando datos:", error);
-        }
-    }
-
-    // Cargar datos antes de continuar
-    await loadSelectorData();
 
     const stats = ['Vigor', 'Mente', 'Resistencia', 'Fuerza', 'Destreza', 'Inteligencia', 'Fe', 'Arcano'];
 
@@ -76,13 +29,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     buildSummary.style.color = 'gold';
     statsCard.appendChild(buildSummary);
 
-    const statRanges = {};
-
+    // Actualiza el nivel total y el brillo del contenedor
     function updateBuildSummary() {
         const inputs = statContainer.querySelectorAll('input[type="range"]');
         let total = 0;
         inputs.forEach(input => total += Number(input.value));
+        
         buildSummary.textContent = `NVL: ${total}`;
+        
+       
         const porcentajePoder = Math.min(total / 800, 1);
         container.style.setProperty('--nivel-poder', porcentajePoder);
     }
@@ -112,60 +67,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const update = () => {
             const pct = ((range.value - range.min) / (range.max - range.min)) * 100;
+            
+            // Color de la barra
             range.style.background = `linear-gradient(90deg, ${colors.dark} 0%, ${colors.light} ${pct}%, #111 ${pct}%)`;
+            
+            // Actualizar número y su variable de brillo
             valSpan.textContent = range.value;
             valSpan.style.setProperty('--valor-stat', range.value);
+            
             updateBuildSummary();
         };
 
         range.addEventListener('input', update);
-        statRanges[name.toLowerCase()] = range;
-
+        
         row.appendChild(label);
         row.appendChild(range);
         row.appendChild(valSpan);
         statContainer.appendChild(row);
-        update();
+        update(); 
     });
 
-    const classSelector = document.getElementById('class-selector');
-
-    function applyClassStats(className) {
-        const defaults = classStats[className];
-        if (!defaults) return;
-        Object.entries(defaults).forEach(([stat, value]) => {
-            const range = statRanges[stat];
-            if (!range) return;
-            range.value = value;
-            range.dispatchEvent(new Event('input'));
-        });
-    }
-
-    if (classSelector) {
-        classSelector.addEventListener('change', () => applyClassStats(classSelector.value));
-        applyClassStats(classSelector.value || 'Vagabundo');
-    }
-
-    const buildNameInput = document.getElementById('build-name');
-    const inputWrapper = document.querySelector('.input-wrapper');
-
-    function updateBuildNameLabel() {
-        if (!buildNameInput || !inputWrapper) return;
-        const hasValue = buildNameInput.value.trim().length > 0;
-        if (hasValue || document.activeElement === buildNameInput) {
-            inputWrapper.classList.add('filled');
-        } else {
-            inputWrapper.classList.remove('filled');
-        }
-    }
-
-    if (buildNameInput) {
-        buildNameInput.addEventListener('input', updateBuildNameLabel);
-        buildNameInput.addEventListener('focus', updateBuildNameLabel);
-        buildNameInput.addEventListener('blur', updateBuildNameLabel);
-        updateBuildNameLabel();
-    }
-
+    // Lógica de selección de equipamiento
     const armasBtn = document.getElementById('armas-btn');
     const armadurasBtn = document.getElementById('armaduras-btn');
     const talismansBtn = document.getElementById('talismans-btn');
@@ -174,10 +96,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modalOptions = document.getElementById('modal-options');
     const closeModalBtn = document.getElementById('close-modal');
 
-    const selectedItems = {
-        armas: null,
-        armaduras: null,
-        talismans: null
+    const selectorData = {
+        armas: ['Espada Larga', 'Martillo de Guerra', 'Arco Largo', 'Daga', 'Lanza'],
+        armaduras: ['Armadura de Hierro', 'Manto de Seda', 'Coraza del Caballero', 'Cota Ligera', 'Peto Antiguo'],
+        talismans: ['Talisman de Fuerza', 'Talisman de Resistencia', 'Talisman de Mente', 'Talisman del Dragón', 'Talisman del Espíritu']
+    };
+
+    const selectedButtons = {
+        armas: armasBtn,
+        armaduras: armadurasBtn,
+        talismans: talismansBtn
     };
 
     function closeSelector() {
@@ -194,25 +122,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         modalTitle.textContent = title;
         modalOptions.innerHTML = '';
 
-        options.forEach(option => {
+        options.forEach(optionText => {
             const item = document.createElement('button');
             item.type = 'button';
             item.className = 'option-item';
-            item.textContent = option.nombre;
-            if (option.imagen) {
-                const img = document.createElement('img');
-                img.src = option.imagen;
-                img.style.width = '50px';
-                img.style.height = '50px';
-                item.appendChild(img);
-            }
+            item.textContent = optionText;
             item.addEventListener('click', () => {
-                selectedItems[type] = option;
                 if (selectedButtons[type]) {
-                    selectedButtons[type].textContent = `${title}: ${option.nombre}`;
+                    selectedButtons[type].textContent = `${title}: ${optionText}`;
                 }
                 closeSelector();
-                // Aquí podrías llamar a calculateFinalStats() si ya lo tienes
             });
             modalOptions.appendChild(item);
         });
@@ -245,4 +164,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (talismansBtn) {
         talismansBtn.addEventListener('click', () => openSelector('talismans', 'Seleccionar talismán', selectorData.talismans));
     }
+    
 });
