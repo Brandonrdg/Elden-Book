@@ -1,4 +1,4 @@
-import { loginConGoogle, cerrarSesion, onUsuarioCambia, guardarBuildFirestore, auth } from './firebase.js';
+import { loginConGoogle, cerrarSesion, onUsuarioCambia, guardarBuildFirestore, obtenerMisBuilds, eliminarBuild, auth } from './firebase.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const statsCard = document.getElementById('stats-card');
@@ -19,7 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const stats = ['Vigor', 'Mente', 'Resistencia', 'Fuerza', 'Destreza', 'Inteligencia', 'Fe', 'Arcano'];
 
-    // ─── STATS BASE POR CLASE ─────────────────────────────────────
     const statsPorClase = {
         'Vagabundo':  { nivel: 9,  Vigor: 15, Mente: 10, Resistencia: 11, Fuerza: 14, Destreza: 13, Inteligencia: 9,  Fe: 9,  Arcano: 7  },
         'Héroe':      { nivel: 7,  Vigor: 14, Mente: 9,  Resistencia: 12, Fuerza: 16, Destreza: 9,  Inteligencia: 7,  Fe: 8,  Arcano: 11 },
@@ -33,7 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
         'Wretch':     { nivel: 1,  Vigor: 10, Mente: 10, Resistencia: 10, Fuerza: 10, Destreza: 10, Inteligencia: 10, Fe: 10, Arcano: 10 }
     };
 
-    // ── Declarar classSelector AQUÍ arriba para que updateBuildSummary lo use ──
     const classSelector = document.getElementById('class-selector');
 
     statsCard.innerHTML = '<h2>Stats</h2>';
@@ -46,11 +44,20 @@ document.addEventListener('DOMContentLoaded', () => {
     buildSummary.style.color = 'gold';
     statsCard.appendChild(buildSummary);
 
+    function calcularNivel(buildStats, clase) {
+        const base = statsPorClase[clase];
+        if (!base) return '?';
+        let puntos = 0;
+        stats.forEach(name => {
+            puntos += Math.max(0, (buildStats[name] || 0) - (base[name] || 0));
+        });
+        return base.nivel + puntos;
+    }
+
     function updateBuildSummary() {
         const inputs = statContainer.querySelectorAll('input[type="range"]');
         const claseActual = classSelector ? classSelector.value : 'Vagabundo';
         const base = statsPorClase[claseActual];
-
         let puntosGastados = 0;
         stats.forEach((name, i) => {
             if (inputs[i]) {
@@ -59,7 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 puntosGastados += Math.max(0, valorActual - valorBase);
             }
         });
-
         const nivel = base.nivel + puntosGastados;
         buildSummary.textContent = `NVL: ${nivel}`;
         const porcentajePoder = Math.min(nivel / 800, 1);
@@ -261,6 +267,72 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // ─── MIS BUILDS ───────────────────────────────────────────────
+    const misBuildBtn    = document.getElementById('mis-builds-btn');
+    const misBuildModal  = document.getElementById('mis-builds-modal');
+    const misBuildLista  = document.getElementById('mis-builds-lista');
+    const closeMisBuilds = document.getElementById('close-mis-builds');
+
+    function closeMisBuildModal() {
+        if (!misBuildModal) return;
+        if (typeof misBuildModal.close === 'function') misBuildModal.close();
+        else misBuildModal.style.display = 'none';
+    }
+
+    async function cargarMisBuilds() {
+        if (!misBuildLista) return;
+        misBuildLista.innerHTML = '<p style="color:gold; text-align:center;">Cargando...</p>';
+        try {
+            const builds = await obtenerMisBuilds();
+            if (builds.length === 0) {
+                misBuildLista.innerHTML = '<p style="color:#aaa; text-align:center;">No tienes builds guardadas aún.</p>';
+                return;
+            }
+            misBuildLista.innerHTML = '';
+            builds.forEach(build => {
+                const card = document.createElement('div');
+                card.className = 'build-card';
+                const nivel = calcularNivel(build.stats || {}, build.clase || 'Vagabundo');
+                card.innerHTML = `
+                    <div class="build-card-info">
+                        <span class="build-card-nombre">${build.nombre || 'Sin nombre'}</span>
+                        <span class="build-card-meta">${build.clase || ''} · NVL ${nivel}</span>
+                    </div>
+                    <div class="build-card-actions">
+                        <button class="btn-cargar">Cargar</button>
+                        <button class="btn-eliminar">Eliminar</button>
+                    </div>
+                `;
+                card.querySelector('.btn-cargar').addEventListener('click', () => {
+                    loadBuildData(build);
+                    closeMisBuildModal();
+                });
+                card.querySelector('.btn-eliminar').addEventListener('click', async () => {
+                    await eliminarBuild(build.buildId);
+                    card.remove();
+                    if (misBuildLista.children.length === 0) {
+                        misBuildLista.innerHTML = '<p style="color:#aaa; text-align:center;">No tienes builds guardadas aún.</p>';
+                    }
+                });
+                misBuildLista.appendChild(card);
+            });
+        } catch (e) {
+            console.error(e);
+            misBuildLista.innerHTML = '<p style="color:red; text-align:center;">Error al cargar builds.</p>';
+        }
+    }
+
+    if (misBuildBtn) {
+        misBuildBtn.addEventListener('click', () => {
+            cargarMisBuilds();
+            if (typeof misBuildModal.showModal === 'function') misBuildModal.showModal();
+            else misBuildModal.style.display = 'block';
+        });
+    }
+
+    if (closeMisBuilds) closeMisBuilds.addEventListener('click', closeMisBuildModal);
+    if (misBuildModal)  misBuildModal.addEventListener('click', e => { if (e.target === misBuildModal) closeMisBuildModal(); });
+
     // ─── AUTH UI ──────────────────────────────────────────────────
     const loginBtn     = document.getElementById('login-btn');
     const logoutBtn    = document.getElementById('logout-btn');
@@ -275,9 +347,11 @@ document.addEventListener('DOMContentLoaded', () => {
             userSection.style.display  = 'flex';
             userFoto.src               = user.photoURL;
             userNombre.textContent     = user.displayName;
+            if (misBuildBtn) misBuildBtn.style.display = 'inline-flex';
         } else {
             loginSection.style.display = 'block';
             userSection.style.display  = 'none';
+            if (misBuildBtn) misBuildBtn.style.display = 'none';
         }
     });
 

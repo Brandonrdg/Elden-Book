@@ -481,3 +481,65 @@ button:active{
     background: #1a1a1a;
     color: #f5e6a1;
 }
+/* ─── MIS BUILDS ─────────────────────────────────────────────────── */
+.build-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #1a1e2a;
+    border: 1px solid rgba(255, 215, 0, 0.15);
+    border-radius: 8px;
+    padding: 14px 16px;
+    gap: 12px;
+    transition: border-color 0.2s;
+}
+
+.build-card:hover {
+    border-color: rgba(255, 215, 0, 0.4);
+}
+
+.build-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.build-card-nombre {
+    color: #f5e6a1;
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+}
+
+.build-card-meta {
+    color: rgba(255, 215, 0, 0.6);
+    font-size: 0.75rem;
+    letter-spacing: 0.03em;
+}
+
+.build-card-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.btn-cargar {
+    font-size: 0.75rem;
+    padding: 6px 14px;
+    min-height: 32px;
+    margin-bottom: 0;
+    border-color: rgba(255, 215, 0, 0.4);
+}
+
+.btn-eliminar {
+    font-size: 0.75rem;
+    padding: 6px 14px;
+    min-height: 32px;
+    margin-bottom: 0;
+    border-color: rgba(255, 80, 80, 0.4);
+    color: #ffaaaa;
+}
+
+.btn-eliminar:hover {
+    border-color: rgba(255, 80, 80, 0.8);
+    background: linear-gradient(145deg, #4a2020, #1a1010);
+}

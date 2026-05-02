@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Elden Book</title>
-    <link rel="stylesheet" href="Styles/styles.css">
+    <link rel="stylesheet" href="/Styles/styles.css">
 </head>
 <body>
     <div class="background">
@@ -79,6 +79,7 @@
                     <div class="card">
                         <button id="share-build-btn">Share Build</button>
                         <button id="save-build-btn">Save Build</button>
+                        <button id="mis-builds-btn" style="display:none;">Mis Builds</button>
                     </div>
                     <div class="card">
                         <h3>ADS</h3>
@@ -88,7 +89,18 @@
             </div>
         </div>
     </div>
-    <script type="module" src="Animed/firebase.js"></script>
-    <script type="module" src="Animed/animated.js"></script>
+
+    <dialog id="mis-builds-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Mis Builds</h2>
+                <button id="close-mis-builds" class="close-btn">&times;</button>
+            </div>
+            <div id="mis-builds-lista" class="modal-grid"></div>
+        </div>
+    </dialog>
+
+    <script type="module" src="/Animed/firebase.js"></script>
+    <script type="module" src="/Animed/animated.js"></script>
 </body>
 </html>
