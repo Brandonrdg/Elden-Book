@@ -1,3 +1,5 @@
+import { loginConGoogle, cerrarSesion, onUsuarioCambia, guardarBuildFirestore, auth } from './firebase.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     const statsCard = document.getElementById('stats-card');
     const container = document.querySelector('.container');
@@ -5,19 +7,34 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!statsCard || !container) return;
 
     const statColors = {
-        'vigor': { dark: '#500a0a', light: '#ff4d4d' },
-        'mente': { dark: '#0a1a50', light: '#4d79ff' },
-        'resistencia': { dark: '#0a500a', light: '#4dff4d' },
-        'fuerza': { dark: '#4b3621', light: '#d2b48c' },
-        'destreza': { dark: '#50500a', light: '#ffff4d' },
+        'vigor':        { dark: '#500a0a', light: '#ff4d4d' },
+        'mente':        { dark: '#0a1a50', light: '#4d79ff' },
+        'resistencia':  { dark: '#0a500a', light: '#4dff4d' },
+        'fuerza':       { dark: '#4b3621', light: '#d2b48c' },
+        'destreza':     { dark: '#50500a', light: '#ffff4d' },
         'inteligencia': { dark: '#2b0a50', light: '#a64dff' },
-        'fe': { dark: '#503c0a', light: '#ffd700' },
-        'arcano': { dark: '#300000', light: '#800000' }
+        'fe':           { dark: '#503c0a', light: '#ffd700' },
+        'arcano':       { dark: '#300000', light: '#800000' }
     };
 
-
-
     const stats = ['Vigor', 'Mente', 'Resistencia', 'Fuerza', 'Destreza', 'Inteligencia', 'Fe', 'Arcano'];
+
+    // ─── STATS BASE POR CLASE ─────────────────────────────────────
+    const statsPorClase = {
+        'Vagabundo':  { nivel: 9,  Vigor: 15, Mente: 10, Resistencia: 11, Fuerza: 14, Destreza: 13, Inteligencia: 9,  Fe: 9,  Arcano: 7  },
+        'Héroe':      { nivel: 7,  Vigor: 14, Mente: 9,  Resistencia: 12, Fuerza: 16, Destreza: 9,  Inteligencia: 7,  Fe: 8,  Arcano: 11 },
+        'Confesor':   { nivel: 10, Vigor: 10, Mente: 13, Resistencia: 10, Fuerza: 12, Destreza: 12, Inteligencia: 9,  Fe: 14, Arcano: 9  },
+        'Astrólogo':  { nivel: 6,  Vigor: 9,  Mente: 15, Resistencia: 9,  Fuerza: 8,  Destreza: 12, Inteligencia: 16, Fe: 7,  Arcano: 9  },
+        'Samurái':    { nivel: 9,  Vigor: 12, Mente: 11, Resistencia: 13, Fuerza: 12, Destreza: 15, Inteligencia: 9,  Fe: 8,  Arcano: 8  },
+        'Bandido':    { nivel: 5,  Vigor: 10, Mente: 11, Resistencia: 10, Fuerza: 9,  Destreza: 13, Inteligencia: 9,  Fe: 8,  Arcano: 14 },
+        'Prisionero': { nivel: 9,  Vigor: 11, Mente: 12, Resistencia: 11, Fuerza: 11, Destreza: 14, Inteligencia: 14, Fe: 6,  Arcano: 9  },
+        'Profeta':    { nivel: 7,  Vigor: 10, Mente: 14, Resistencia: 8,  Fuerza: 11, Destreza: 10, Inteligencia: 7,  Fe: 16, Arcano: 10 },
+        'Guerrero':   { nivel: 8,  Vigor: 11, Mente: 12, Resistencia: 11, Fuerza: 10, Destreza: 16, Inteligencia: 10, Fe: 8,  Arcano: 9  },
+        'Wretch':     { nivel: 1,  Vigor: 10, Mente: 10, Resistencia: 10, Fuerza: 10, Destreza: 10, Inteligencia: 10, Fe: 10, Arcano: 10 }
+    };
+
+    // ── Declarar classSelector AQUÍ arriba para que updateBuildSummary lo use ──
+    const classSelector = document.getElementById('class-selector');
 
     statsCard.innerHTML = '<h2>Stats</h2>';
     const statContainer = document.createElement('div');
@@ -29,16 +46,23 @@ document.addEventListener('DOMContentLoaded', () => {
     buildSummary.style.color = 'gold';
     statsCard.appendChild(buildSummary);
 
-    // Actualiza el nivel total y el brillo del contenedor
     function updateBuildSummary() {
         const inputs = statContainer.querySelectorAll('input[type="range"]');
-        let total = 0;
-        inputs.forEach(input => total += Number(input.value));
-        
-        buildSummary.textContent = `NVL: ${total}`;
-        
-       
-        const porcentajePoder = Math.min(total / 800, 1);
+        const claseActual = classSelector ? classSelector.value : 'Vagabundo';
+        const base = statsPorClase[claseActual];
+
+        let puntosGastados = 0;
+        stats.forEach((name, i) => {
+            if (inputs[i]) {
+                const valorActual = Number(inputs[i].value);
+                const valorBase = base[name] || 0;
+                puntosGastados += Math.max(0, valorActual - valorBase);
+            }
+        });
+
+        const nivel = base.nivel + puntosGastados;
+        buildSummary.textContent = `NVL: ${nivel}`;
+        const porcentajePoder = Math.min(nivel / 800, 1);
         container.style.setProperty('--nivel-poder', porcentajePoder);
     }
 
@@ -67,102 +91,196 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const update = () => {
             const pct = ((range.value - range.min) / (range.max - range.min)) * 100;
-            
-            // Color de la barra
             range.style.background = `linear-gradient(90deg, ${colors.dark} 0%, ${colors.light} ${pct}%, #111 ${pct}%)`;
-            
-            // Actualizar número y su variable de brillo
             valSpan.textContent = range.value;
             valSpan.style.setProperty('--valor-stat', range.value);
-            
             updateBuildSummary();
         };
 
         range.addEventListener('input', update);
-        
         row.appendChild(label);
         row.appendChild(range);
         row.appendChild(valSpan);
         statContainer.appendChild(row);
-        update(); 
+        update();
     });
 
-    // Lógica de selección de equipamiento
-    const armasBtn = document.getElementById('armas-btn');
-    const armadurasBtn = document.getElementById('armaduras-btn');
-    const talismansBtn = document.getElementById('talismans-btn');
+    // ─── APLICAR CLASE ────────────────────────────────────────────
+    function aplicarClase(nombreClase) {
+        const base = statsPorClase[nombreClase];
+        if (!base) return;
+        const inputs = statContainer.querySelectorAll('input[type="range"]');
+        stats.forEach((name, i) => {
+            inputs[i].value = base[name];
+            inputs[i].dispatchEvent(new Event('input'));
+        });
+    }
+
+    if (classSelector) {
+        classSelector.addEventListener('change', () => aplicarClase(classSelector.value));
+        aplicarClase(classSelector.value);
+    }
+
+    // ─── EQUIPAMIENTO ─────────────────────────────────────────────
+    const armasBtn      = document.getElementById('armas-btn');
+    const armadurasBtn  = document.getElementById('armaduras-btn');
+    const talismansBtn  = document.getElementById('talismans-btn');
     const selectorModal = document.getElementById('selector-modal');
-    const modalTitle = document.getElementById('modal-title');
-    const modalOptions = document.getElementById('modal-options');
+    const modalTitle    = document.getElementById('modal-title');
+    const modalOptions  = document.getElementById('modal-options');
     const closeModalBtn = document.getElementById('close-modal');
 
     const selectorData = {
-        armas: ['Espada Larga', 'Martillo de Guerra', 'Arco Largo', 'Daga', 'Lanza'],
+        armas:     ['Espada Larga', 'Martillo de Guerra', 'Arco Largo', 'Daga', 'Lanza'],
         armaduras: ['Armadura de Hierro', 'Manto de Seda', 'Coraza del Caballero', 'Cota Ligera', 'Peto Antiguo'],
         talismans: ['Talisman de Fuerza', 'Talisman de Resistencia', 'Talisman de Mente', 'Talisman del Dragón', 'Talisman del Espíritu']
     };
 
-    const selectedButtons = {
-        armas: armasBtn,
-        armaduras: armadurasBtn,
-        talismans: talismansBtn
-    };
+    const selectedButtons = { armas: armasBtn, armaduras: armadurasBtn, talismans: talismansBtn };
 
     function closeSelector() {
         if (!selectorModal) return;
-        if (typeof selectorModal.close === 'function') {
-            selectorModal.close();
-        } else {
-            selectorModal.style.display = 'none';
-        }
+        if (typeof selectorModal.close === 'function') selectorModal.close();
+        else selectorModal.style.display = 'none';
     }
 
     function openSelector(type, title, options) {
         if (!selectorModal || !modalTitle || !modalOptions) return;
         modalTitle.textContent = title;
         modalOptions.innerHTML = '';
-
         options.forEach(optionText => {
             const item = document.createElement('button');
             item.type = 'button';
             item.className = 'option-item';
             item.textContent = optionText;
             item.addEventListener('click', () => {
-                if (selectedButtons[type]) {
-                    selectedButtons[type].textContent = `${title}: ${optionText}`;
-                }
+                if (selectedButtons[type]) selectedButtons[type].textContent = `${title}: ${optionText}`;
                 closeSelector();
             });
             modalOptions.appendChild(item);
         });
+        if (typeof selectorModal.showModal === 'function') selectorModal.showModal();
+        else selectorModal.style.display = 'block';
+    }
 
-        if (typeof selectorModal.showModal === 'function') {
-            selectorModal.showModal();
-        } else {
-            selectorModal.style.display = 'block';
+    if (closeModalBtn) closeModalBtn.addEventListener('click', closeSelector);
+    if (selectorModal) selectorModal.addEventListener('click', e => { if (e.target === selectorModal) closeSelector(); });
+    if (armasBtn)     armasBtn.addEventListener('click',     () => openSelector('armas',     'Seleccionar arma',      selectorData.armas));
+    if (armadurasBtn) armadurasBtn.addEventListener('click', () => openSelector('armaduras', 'Seleccionar armadura',  selectorData.armaduras));
+    if (talismansBtn) talismansBtn.addEventListener('click', () => openSelector('talismans', 'Seleccionar talismán',  selectorData.talismans));
+
+    // ─── GUARDAR Y COMPARTIR ──────────────────────────────────────
+    function getBuildData() {
+        const buildNameInput = document.getElementById('build-name');
+        const inputs = statContainer.querySelectorAll('input[type="range"]');
+        const statsData = {};
+        stats.forEach((name, i) => { statsData[name] = Number(inputs[i].value); });
+        return {
+            nombre:   buildNameInput ? buildNameInput.value : 'Sin nombre',
+            clase:    classSelector  ? classSelector.value  : '',
+            arma:     armasBtn.textContent,
+            armadura: armadurasBtn.textContent,
+            talisman: talismansBtn.textContent,
+            stats:    statsData
+        };
+    }
+
+    function loadBuildData(data) {
+        const buildNameInput = document.getElementById('build-name');
+        if (buildNameInput) buildNameInput.value = data.nombre;
+        if (classSelector && data.clase) {
+            classSelector.value = data.clase;
+            aplicarClase(data.clase);
         }
-    }
-
-    if (closeModalBtn) {
-        closeModalBtn.addEventListener('click', closeSelector);
-    }
-
-    if (selectorModal) {
-        selectorModal.addEventListener('click', event => {
-            if (event.target === selectorModal) {
-                closeSelector();
+        if (data.arma)     armasBtn.textContent     = data.arma;
+        if (data.armadura) armadurasBtn.textContent = data.armadura;
+        if (data.talisman) talismansBtn.textContent = data.talisman;
+        const inputs = statContainer.querySelectorAll('input[type="range"]');
+        stats.forEach((name, i) => {
+            if (data.stats && data.stats[name] !== undefined) {
+                inputs[i].value = data.stats[name];
+                inputs[i].dispatchEvent(new Event('input'));
             }
         });
     }
 
-    if (armasBtn) {
-        armasBtn.addEventListener('click', () => openSelector('armas', 'Seleccionar arma', selectorData.armas));
+    // SAVE BUILD
+    const saveBuildBtn = document.getElementById('save-build-btn');
+    if (saveBuildBtn) {
+        saveBuildBtn.addEventListener('click', async () => {
+            const buildData = getBuildData();
+            localStorage.setItem('eldenbook_build', JSON.stringify(buildData));
+            if (auth.currentUser) {
+                try {
+                    await guardarBuildFirestore(buildData);
+                    saveBuildBtn.textContent = '✓ Guardado en la nube!';
+                } catch (e) {
+                    console.error(e);
+                    saveBuildBtn.textContent = '✗ Error al guardar';
+                }
+            } else {
+                saveBuildBtn.textContent = '✓ Guardado localmente';
+            }
+            saveBuildBtn.style.color = 'gold';
+            setTimeout(() => {
+                saveBuildBtn.textContent = 'Save Build';
+                saveBuildBtn.style.color = '';
+            }, 2000);
+        });
     }
-    if (armadurasBtn) {
-        armadurasBtn.addEventListener('click', () => openSelector('armaduras', 'Seleccionar armadura', selectorData.armaduras));
+
+    // SHARE BUILD
+    const shareBuildBtn = document.getElementById('share-build-btn');
+    if (shareBuildBtn) {
+        shareBuildBtn.addEventListener('click', () => {
+            const buildData = getBuildData();
+            const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(buildData))));
+            const shareUrl = `${window.location.origin}${window.location.pathname}?build=${encoded}`;
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                shareBuildBtn.textContent = '✓ Link copiado!';
+                shareBuildBtn.style.color = 'gold';
+                setTimeout(() => {
+                    shareBuildBtn.textContent = 'Share Build';
+                    shareBuildBtn.style.color = '';
+                }, 2000);
+            }).catch(() => {
+                prompt('Copia este link:', shareUrl);
+            });
+        });
     }
-    if (talismansBtn) {
-        talismansBtn.addEventListener('click', () => openSelector('talismans', 'Seleccionar talismán', selectorData.talismans));
+
+    // Cargar build desde URL
+    const urlParams  = new URLSearchParams(window.location.search);
+    const buildParam = urlParams.get('build');
+    if (buildParam) {
+        try {
+            const decoded = JSON.parse(decodeURIComponent(escape(atob(buildParam))));
+            loadBuildData(decoded);
+        } catch (e) {
+            console.warn('Link de build inválido:', e);
+        }
     }
-    
+
+    // ─── AUTH UI ──────────────────────────────────────────────────
+    const loginBtn     = document.getElementById('login-btn');
+    const logoutBtn    = document.getElementById('logout-btn');
+    const loginSection = document.getElementById('login-section');
+    const userSection  = document.getElementById('user-section');
+    const userFoto     = document.getElementById('user-foto');
+    const userNombre   = document.getElementById('user-nombre');
+
+    onUsuarioCambia((user) => {
+        if (user) {
+            loginSection.style.display = 'none';
+            userSection.style.display  = 'flex';
+            userFoto.src               = user.photoURL;
+            userNombre.textContent     = user.displayName;
+        } else {
+            loginSection.style.display = 'block';
+            userSection.style.display  = 'none';
+        }
+    });
+
+    if (loginBtn)  loginBtn.addEventListener('click',  loginConGoogle);
+    if (logoutBtn) logoutBtn.addEventListener('click', cerrarSesion);
 });

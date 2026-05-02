@@ -1,76 +1,94 @@
 <!DOCTYPE html>
 <html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Elden Book</title>
-        <link rel="stylesheet" href="../Styles/styles.css">
-    </head>
-    <body>
-        <div class="background">
-            <div class="container">
-                <h1>Elden Book</h1>
-                <div class="main">
-                    <div class="left">
-                        <div class="card">
-                            <div class="build-name-field">
-                                <span class="build-name-icon">📜</span>
-                                <div class="input-wrapper">
-                                    <input id="build-name" class="build-name-input" type="text" placeholder=" ">
-                                    <label for="build-name" class="floating-label">Nombre de la Build</label>
-                                </div>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elden Book</title>
+    <link rel="stylesheet" href="../Styles/styles.css">
+</head>
+<body>
+    <div class="background">
+        <div class="container">
+            <h1>Elden Book</h1>
+            <div class="main">
+                <div class="left">
+                    <div class="card">
+                        <div class="build-name-field">
+                            <span class="build-name-icon">📜</span>
+                            <div class="input-wrapper">
+                                <input id="build-name" class="build-name-input" type="text" placeholder=" ">
+                                <label for="build-name" class="floating-label">Nombre de la Build</label>
                             </div>
-                        </div>
-                        <div class="card">
-                            <h2>Equipamiento</h2>
-                            <div class = "Button-container">
-                            <button id="armas-btn">Armas</button>
-                            <button id="armaduras-btn">Armaduras</button>
-                            <button id="talismans-btn">Talismanes</button>
-                            </div>
-                        </div>
-                        <dialog id="selector-modal" class="modal">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                <h2 id="modal-title">Seleccionar Item</h2>
-                                <button id="close-modal" class="close-btn">&times;</button>
-                                </div>
-                            <div id="modal-options" class="modal-grid">
-                            </div>
-                        </div>
-                        </dialog>
-                        <div class="card" id="stats-card">
-                            <h2>Stats</h2>
-                            <button>Vigor</button>
-                            <button>Mente</button>
-                            <button>Resistencia</button>
-                            <button>Fuerza</button>
-                            <button>Destreza</button>
-                            <button>Inteligencia</button>
-                            <button>Fe</button>
-                            <button>Arcano</button>
-                        </div>
-                        <div class="card">
-                            <h2>Estadisticas de la build</h2>
-                            <button>Fuerza</button>
-                            <button>Salud</button>
-                            <button>Peso</button>
                         </div>
                     </div>
-                    <div class="right">
-                        <div class="card">
-                            <button>Share Build</button>
-                            <button>Save Build</button>
+                    <div class="card">
+                        <h2>Equipamiento</h2>
+                        <div class="Button-container">
+                            <button type="button" id="armas-btn">Armas</button>
+                            <button type="button" id="armaduras-btn">Armaduras</button>
+                            <button type="button" id="talismans-btn">Talismanes</button>
                         </div>
-                        <div class="card">
-                            <h3>ADS</h3>
-                            <p>Publicidad</p>
+                    </div>
+                    <div class="card">
+                        <h2>Clase</h2>
+                        <select id="class-selector" class="class-select">
+                            <option value="Vagabundo">Vagabundo</option>
+                            <option value="Héroe">Héroe</option>
+                            <option value="Confesor">Confesor</option>
+                            <option value="Astrólogo">Astrólogo</option>
+                            <option value="Samurái">Samurái</option>
+                            <option value="Bandido">Bandido</option>
+                            <option value="Prisionero">Prisionero</option>
+                            <option value="Profeta">Profeta</option>
+                            <option value="Guerrero">Guerrero</option>
+                            <option value="Wretch">Wretch</option>
+                        </select>
+                    </div>
+                    <dialog id="selector-modal" class="modal">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h2 id="modal-title">Seleccionar Item</h2>
+                                <button id="close-modal" class="close-btn">&times;</button>
+                            </div>
+                            <div id="modal-options" class="modal-grid"></div>
                         </div>
+                    </dialog>
+                    <div class="card" id="stats-card"></div>
+                    <div class="card">
+                        <h2>Estadisticas de la build</h2>
+                        <button>Fuerza</button>
+                        <button>Salud</button>
+                        <button>Peso</button>
+                    </div>
+                </div>
+                <div class="right">
+                    <div class="card" id="auth-card">
+                        <div id="login-section">
+                            <button id="login-btn" class="auth-btn">
+                                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" style="vertical-align:middle; margin-right:6px;"/>
+                                Iniciar con Google
+                            </button>
+                        </div>
+                        <div id="user-section" style="display:none; align-items:center; gap:8px; flex-wrap:wrap;">
+                            <img id="user-foto" width="32" style="border-radius:50%;"/>
+                            <span id="user-nombre" style="color:gold;"></span>
+                            <button id="logout-btn" class="auth-btn">Cerrar sesión</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <button id="share-build-btn">Share Build</button>
+                        <button id="save-build-btn">Save Build</button>
+                    </div>
+                    <div class="card">
+                        <h3>ADS</h3>
+                        <p>Publicidad</p>
                     </div>
                 </div>
             </div>
         </div>
-    <script src="../Animed/animated.js"></script>
-    </body>
+    </div>
+    <script type="module" src="../Animed/firebase.js"></script>
+    <script type="module" src="../Animed/animated.js"></script>
+</body>
 </html>
