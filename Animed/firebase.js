@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, deleteDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyD3G9kRDsTNoxWmnLx6kvwa05uCqSCOi2o",
@@ -19,9 +19,8 @@ const provider = new GoogleAuthProvider();
 getRedirectResult(auth).catch(err => console.error('Redirect error:', err));
 
 export function loginConGoogle() {
-    return signInWithRedirect(auth, provider);
+    return signInWithPopup(auth, provider);
 }
-
 export function cerrarSesion() {
     return signOut(auth);
 }
@@ -57,4 +56,19 @@ export async function obtenerMisBuilds() {
 export async function eliminarBuild(buildId) {
     const ref = doc(db, 'builds', buildId);
     await deleteDoc(ref);
+}
+export async function obtenerPerfil() {
+    const user = auth.currentUser;
+    if (!user) return null;
+    const ref = doc(db, 'usuarios', user.uid);
+    const snap = await getDoc(ref);
+    return snap.exists() ? snap.data() : { isPremium: false };
+}
+
+export async function contarMisBuilds() {
+    const user = auth.currentUser;
+    if (!user) return 0;
+    const q = query(collection(db, 'builds'), where('uid', '==', user.uid));
+    const snap = await getDocs(q);
+    return snap.size;
 }

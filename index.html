@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Elden Book</title>
-    <link rel="stylesheet" href="Styles/styles.css">
+    <link rel="stylesheet" href="/Styles/styles.css">
 </head>
 <body>
     <div class="background">
@@ -24,10 +24,24 @@
                     </div>
                     <div class="card">
                         <h2>Equipamiento</h2>
-                        <div class="Button-container">
-                            <button type="button" id="armas-btn">Armas</button>
-                            <button type="button" id="armaduras-btn">Armaduras</button>
-                            <button type="button" id="talismans-btn">Talismanes</button>
+                        <h3 class="equip-subtitle">Armas</h3>
+                        <div class="equip-slots">
+                            <button type="button" class="equip-slot" id="arma-derecha">⚔️ Mano Derecha</button>
+                            <button type="button" class="equip-slot" id="arma-izquierda">🛡️ Mano Izquierda</button>
+                        </div>
+                        <h3 class="equip-subtitle">Armadura</h3>
+                        <div class="equip-slots">
+                            <button type="button" class="equip-slot" id="armadura-cabeza">🪖 Cabeza</button>
+                            <button type="button" class="equip-slot" id="armadura-pecho">🥋 Pecho</button>
+                            <button type="button" class="equip-slot" id="armadura-manos">🧤 Manos</button>
+                            <button type="button" class="equip-slot" id="armadura-piernas">👢 Piernas</button>
+                        </div>
+                        <h3 class="equip-subtitle">Talismanes</h3>
+                        <div class="equip-slots">
+                            <button type="button" class="equip-slot" id="talisman-1">🔮 Talismán 1</button>
+                            <button type="button" class="equip-slot" id="talisman-2">🔮 Talismán 2</button>
+                            <button type="button" class="equip-slot" id="talisman-3">🔮 Talismán 3</button>
+                            <button type="button" class="equip-slot" id="talisman-4">🔮 Talismán 4</button>
                         </div>
                     </div>
                     <div class="card">
@@ -45,21 +59,52 @@
                             <option value="Wretch">Wretch</option>
                         </select>
                     </div>
-                    <dialog id="selector-modal" class="modal">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h2 id="modal-title">Seleccionar Item</h2>
-                                <button id="close-modal" class="close-btn">&times;</button>
-                            </div>
-                            <div id="modal-options" class="modal-grid"></div>
-                        </div>
-                    </dialog>
                     <div class="card" id="stats-card"></div>
-                    <div class="card">
-                        <h2>Estadisticas de la build</h2>
-                        <button>Fuerza</button>
-                        <button>Salud</button>
-                        <button>Peso</button>
+                    <div class="card" id="build-stats-card">
+                        <h2>Estadísticas de la Build</h2>
+                        <div class="bstat-grid">
+                            <div class="bstat-group">
+                                <div class="bstat-group-title">Vitales</div>
+                                <div class="bstat-row">
+                                    <span class="bstat-label">❤️ HP</span>
+                                    <div class="bstat-bar-wrap">
+                                        <div class="bstat-bar" id="bar-hp" style="--pct:0%; --color:#c0392b"></div>
+                                    </div>
+                                    <span class="bstat-val" id="val-hp">0</span>
+                                </div>
+                                <div class="bstat-row">
+                                    <span class="bstat-label">🔵 FP</span>
+                                    <div class="bstat-bar-wrap">
+                                        <div class="bstat-bar" id="bar-fp" style="--pct:0%; --color:#2980b9"></div>
+                                    </div>
+                                    <span class="bstat-val" id="val-fp">0</span>
+                                </div>
+                                <div class="bstat-row">
+                                    <span class="bstat-label">🟢 Stamina</span>
+                                    <div class="bstat-bar-wrap">
+                                        <div class="bstat-bar" id="bar-stamina" style="--pct:0%; --color:#27ae60"></div>
+                                    </div>
+                                    <span class="bstat-val" id="val-stamina">0</span>
+                                </div>
+                            </div>
+                            <div class="bstat-group">
+                                <div class="bstat-group-title">Carga de Equipo</div>
+                                <div class="bstat-row">
+                                    <span class="bstat-label">⚖️ Peso</span>
+                                    <div class="bstat-bar-wrap">
+                                        <div class="bstat-bar" id="bar-peso" style="--pct:0%; --color:#d4ac0d"></div>
+                                    </div>
+                                    <span class="bstat-val" id="val-peso">0</span>
+                                </div>
+                                <div class="bstat-carga-label" id="carga-label">Sin equipo</div>
+                            </div>
+                            <div class="bstat-group">
+                                <div class="bstat-group-title">Efectos del Equipamiento</div>
+                                <div id="buffs-lista" class="buffs-lista">
+                                    <p class="buffs-empty">Equipa items para ver sus efectos</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="right">
@@ -90,7 +135,25 @@
         </div>
     </div>
 
-    <dialog id="mis-builds-modal" class="modal">
+    <!-- Overlay -->
+    <div id="modal-overlay"></div>
+
+    <!-- Modal selector de items -->
+    <div id="selector-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Seleccionar Item</h2>
+                <button id="close-modal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-search">
+                <input type="text" id="modal-search-input" placeholder="Buscar item..." class="modal-search-input">
+            </div>
+            <div id="modal-options" class="modal-grid"></div>
+        </div>
+    </div>
+
+    <!-- Modal Mis Builds -->
+    <div id="mis-builds-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Mis Builds</h2>
@@ -98,9 +161,32 @@
             </div>
             <div id="mis-builds-lista" class="modal-grid"></div>
         </div>
-    </dialog>
+    </div>
+    <!-- Modal Premium -->
+<div id="premium-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header premium-header">
+            <h2>✨ Elden Book Premium</h2>
+            <button id="close-premium-modal" class="close-btn">&times;</button>
+        </div>
+        <div class="premium-body">
+            <div class="premium-icon">👑</div>
+            <p class="premium-titulo">Has alcanzado el límite de builds</p>
+            <p class="premium-subtitulo">Los usuarios free pueden guardar hasta <strong>3 builds</strong>. Hazte Premium para desbloquear todo el potencial.</p>
+            <div class="premium-features">
+                <div class="premium-feature">✅ Builds ilimitadas</div>
+                <div class="premium-feature">✅ Comparar builds</div>
+                <div class="premium-feature">✅ Stats avanzados</div>
+                <div class="premium-feature">✅ Sin anuncios</div>
+                <div class="premium-feature">✅ Insignia Premium 👑</div>
+            </div>
+            <button id="premium-cta-btn" class="premium-cta">✨ Hazte Premium</button>
+            <p class="premium-coming-soon">Próximamente disponible</p>
+        </div>
+    </div>
+</div>
 
-    <script type="module" src="Animed/firebase.js"></script>
-    <script type="module" src="Animed/animated.js"></script>
+    <script type="module" src="/Animed/firebase.js"></script>
+    <script type="module" src="/Animed/animated.js"></script>
 </body>
 </html>
