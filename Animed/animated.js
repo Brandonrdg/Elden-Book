@@ -6,6 +6,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!statsCard || !container) return;
 
+    // ─── MODALES ──────────────────────────────────────────────────
+    const modalOverlay = document.getElementById('modal-overlay');
+
+    function abrirModal(modal) {
+        if (!modal) return;
+        modal.classList.add('active');
+        if (modalOverlay) modalOverlay.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function cerrarModal(modal) {
+        if (!modal) return;
+        modal.classList.remove('active');
+        const hayModalActivo = document.querySelectorAll('.modal.active').length > 0;
+        if (!hayModalActivo && modalOverlay) {
+            modalOverlay.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+    }
+
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', () => {
+            cerrarModal(document.getElementById('selector-modal'));
+            cerrarModal(document.getElementById('mis-builds-modal'));
+            cerrarModal(document.getElementById('premium-modal'));
+            slotActivo = null;
+        });
+    }
+
+    // ─── DATOS ────────────────────────────────────────────────────
     const statColors = {
         'vigor':        { dark: '#500a0a', light: '#ff4d4d' },
         'mente':        { dark: '#0a1a50', light: '#4d79ff' },
@@ -32,7 +62,6 @@ document.addEventListener('DOMContentLoaded', () => {
         'Wretch':     { nivel: 1,  Vigor: 10, Mente: 10, Resistencia: 10, Fuerza: 10, Destreza: 10, Inteligencia: 10, Fe: 10, Arcano: 10 }
     };
 
-    // ─── EQUIPAMIENTO (definido aquí arriba para que actualizarEstadisticas lo use) ──
     const equipSlots = {
         'arma-derecha':    { type: 'armas',     label: '⚔️ Mano Derecha' },
         'arma-izquierda':  { type: 'armas',     label: '🛡️ Mano Izquierda' },
@@ -46,8 +75,16 @@ document.addEventListener('DOMContentLoaded', () => {
         'talisman-4':      { type: 'talismans', label: '🔮 Talismán 4' },
     };
 
+    const filtroArmaduras = {
+        'armadura-cabeza':  'Helm',
+        'armadura-pecho':   'Chest Armor',
+        'armadura-manos':   'Gauntlets',
+        'armadura-piernas': 'Leg Armor'
+    };
+
     const classSelector = document.getElementById('class-selector');
 
+    // ─── STATS CARD ───────────────────────────────────────────────
     statsCard.innerHTML = '<h2>Stats</h2>';
     const statContainer = document.createElement('div');
     statContainer.className = 'stat-container';
@@ -99,10 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
         Object.keys(equipSlots).forEach(slotId => {
             const btn = document.getElementById(slotId);
             if (btn && btn.dataset.description && btn.dataset.description !== 'undefined' && btn.dataset.itemName) {
-                buffs.push({
-                    nombre: btn.dataset.itemName,
-                    descripcion: btn.dataset.description
-                });
+                buffs.push({ nombre: btn.dataset.itemName, descripcion: btn.dataset.description });
             }
         });
         if (buffs.length === 0) {
@@ -188,9 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const base = statsPorClase[claseActual];
         let puntosGastados = 0;
         stats.forEach((name, i) => {
-            if (inputs[i]) {
-                puntosGastados += Math.max(0, Number(inputs[i].value) - (base[name] || 0));
-            }
+            if (inputs[i]) puntosGastados += Math.max(0, Number(inputs[i].value) - (base[name] || 0));
         });
         const nivel = base.nivel + puntosGastados;
         buildSummary.textContent = `NVL: ${nivel}`;
@@ -227,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
             valSpan.textContent = range.value;
             valSpan.style.setProperty('--valor-stat', range.value);
             updateBuildSummary();
-            actualizarEstadisticas(); // ← aquí se actualiza todo junto
+            actualizarEstadisticas();
         };
 
         range.addEventListener('input', update);
@@ -260,19 +292,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalOptions  = document.getElementById('modal-options');
     const closeModalBtn = document.getElementById('close-modal');
 
-    const apiEndpoints = {
-        armas:     'https://eldenring.fanapis.com/api/weapons?limit=100',
-        armaduras: 'https://eldenring.fanapis.com/api/armors?limit=100',
-        talismans: 'https://eldenring.fanapis.com/api/talismans?limit=100'
-    };
-
-    const itemCache = { armas: null, armaduras: null, talismans: null };
+    const itemCache = {};
     let slotActivo = null;
 
+    // Función para paginar y traer todos los items
+    async function fetchTodos(baseUrl) {
+        let todos = [];
+        let page = 0;
+        const limit = 100;
+        while (true) {
+            const sep = baseUrl.includes('?') ? '&' : '?';
+            const res = await fetch(`${baseUrl}${sep}limit=${limit}&page=${page}`);
+            const data = await res.json();
+            const items = data.data || [];
+            todos = [...todos, ...items];
+            if (todos.length >= data.total || items.length === 0) break;
+            page++;
+        }
+        return todos;
+    }
+
     function closeSelector() {
-        if (!selectorModal) return;
-        if (typeof selectorModal.close === 'function') selectorModal.close();
-        else selectorModal.style.display = 'none';
+        cerrarModal(selectorModal);
         slotActivo = null;
     }
 
@@ -281,20 +322,42 @@ document.addEventListener('DOMContentLoaded', () => {
         slotActivo = slotId;
         modalTitle.textContent = title;
         modalOptions.innerHTML = '<p style="color:gold; text-align:center;">Cargando...</p>';
+        abrirModal(selectorModal);
 
-        if (typeof selectorModal.showModal === 'function') selectorModal.showModal();
-        else selectorModal.style.display = 'block';
+        const searchInput = document.getElementById('modal-search-input');
+        if (searchInput) {
+            searchInput.value = '';
+            if (searchInput._handler) searchInput.removeEventListener('input', searchInput._handler);
+        }
 
         try {
-            if (!itemCache[type]) {
-                const res = await fetch(apiEndpoints[type]);
-                const data = await res.json();
-                itemCache[type] = data.data;
+            const cacheKey = type;
+
+            if (!itemCache[cacheKey]) {
+                let baseUrl;
+                if (type === 'armaduras') {
+                    baseUrl = `https://eldenring.fanapis.com/api/armors`;
+                } else if (type === 'armas') {
+                    baseUrl = 'https://eldenring.fanapis.com/api/weapons';
+                } else {
+                    baseUrl = 'https://eldenring.fanapis.com/api/talismans';
+                }
+                itemCache[cacheKey] = await fetchTodos(baseUrl);
             }
 
-            const items = itemCache[type];
+            const items = itemCache[cacheKey];
             modalOptions.innerHTML = '';
+            let itemsFiltrados = items;
 
+            if (type === 'armaduras') {
+                const categoria = filtroArmaduras[slotId];
+
+                itemsFiltrados = items.filter(item => {
+                return item.category === categoria;
+                });
+            }
+
+            // Botón limpiar
             const clearBtn = document.createElement('button');
             clearBtn.type = 'button';
             clearBtn.className = 'option-item option-item--clear';
@@ -302,18 +365,23 @@ document.addEventListener('DOMContentLoaded', () => {
             clearBtn.addEventListener('click', () => {
                 const btn = document.getElementById(slotActivo);
                 if (btn) {
-                    btn.innerHTML = equipSlots[slotActivo].label;
+                    btn.innerHTML           = equipSlots[slotActivo].label;
                     btn.dataset.itemId      = '';
                     btn.dataset.weight      = 0;
                     btn.dataset.description = '';
                     btn.dataset.itemName    = '';
                 }
                 actualizarEstadisticas();
+                btn.classList.add('equip-anim');
+
+                setTimeout(() => {
+                    btn.classList.remove('equip-anim');
+                    }, 400);
                 closeSelector();
             });
             modalOptions.appendChild(clearBtn);
 
-            items.forEach(item => {
+            itemsFiltrados.forEach(item => {
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = 'option-item';
@@ -322,20 +390,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="item-nombre">${item.name}</span>
                     ${item.weight ? `<span class="item-peso">Peso: ${item.weight}</span>` : ''}
                 `;
-                // Buscador
-const searchInput = document.getElementById('modal-search-input');
-if (searchInput) {
-    searchInput.value = '';
-    searchInput.focus();
-    searchInput.addEventListener('input', () => {
-        const query = searchInput.value.toLowerCase();
-        const btns = modalOptions.querySelectorAll('.option-item:not(.option-item--clear)');
-        btns.forEach(btn => {
-            const nombre = btn.querySelector('.item-nombre')?.textContent.toLowerCase() || '';
-            btn.style.display = nombre.includes(query) ? '' : 'none';
-        });
-    });
-}
                 btn.addEventListener('click', () => {
                     const slotBtn = document.getElementById(slotActivo);
                     if (slotBtn) {
@@ -349,10 +403,30 @@ if (searchInput) {
                         slotBtn.dataset.itemName    = item.name;
                     }
                     actualizarEstadisticas();
+                    slotBtn.classList.add('equip-anim');
+
+                    setTimeout(() => {
+                        slotBtn.classList.remove('equip-anim');
+                    }, 400);
                     closeSelector();
                 });
                 modalOptions.appendChild(btn);
             });
+
+            // Buscador
+            if (searchInput) {
+                const handler = () => {
+                    const query = searchInput.value.toLowerCase();
+                    const btns = modalOptions.querySelectorAll('.option-item:not(.option-item--clear)');
+                    btns.forEach(b => {
+                        const nombre = b.querySelector('.item-nombre')?.textContent.toLowerCase() || '';
+                        b.style.display = nombre.includes(query) ? '' : 'none';
+                    });
+                };
+                searchInput._handler = handler;
+                searchInput.addEventListener('input', handler);
+                searchInput.focus();
+            }
 
         } catch (e) {
             console.error(e);
@@ -361,8 +435,6 @@ if (searchInput) {
     }
 
     if (closeModalBtn) closeModalBtn.addEventListener('click', closeSelector);
-    if (selectorModal) selectorModal.addEventListener('click', e => { if (e.target === selectorModal) closeSelector(); });
-
     Object.entries(equipSlots).forEach(([slotId, info]) => {
         const btn = document.getElementById(slotId);
         if (btn) btn.addEventListener('click', () => openSelector(slotId, `Seleccionar ${info.label}`, info.type));
@@ -379,8 +451,8 @@ if (searchInput) {
         Object.keys(equipSlots).forEach(slotId => {
             const btn = document.getElementById(slotId);
             equipData[slotId] = {
-                name:        btn ? btn.textContent : '',
-                itemId:      btn ? btn.dataset.itemId || '' : '',
+                name:        btn ? (btn.dataset.itemName || btn.textContent) : '',
+                itemId:      btn ? btn.dataset.itemId      || '' : '',
                 weight:      btn ? Number(btn.dataset.weight || 0) : 0,
                 description: btn ? btn.dataset.description || '' : ''
             };
@@ -406,16 +478,13 @@ if (searchInput) {
                 const btn = document.getElementById(slotId);
                 if (btn && itemData.name && itemData.name !== equipSlots[slotId]?.label) {
                     btn.textContent         = itemData.name;
-                    btn.dataset.itemId      = itemData.itemId || '';
-                    btn.dataset.weight      = itemData.weight || 0;
+                    btn.dataset.itemId      = itemData.itemId      || '';
+                    btn.dataset.weight      = itemData.weight      || 0;
                     btn.dataset.description = itemData.description || '';
+                    btn.dataset.itemName    = itemData.name        || '';
                 }
             });
         }
-        if (data.arma)     { const b = document.getElementById('arma-derecha');    if (b) b.textContent = data.arma; }
-        if (data.armadura) { const b = document.getElementById('armadura-pecho');  if (b) b.textContent = data.armadura; }
-        if (data.talisman) { const b = document.getElementById('talisman-1');      if (b) b.textContent = data.talisman; }
-
         const inputs = statContainer.querySelectorAll('input[type="range"]');
         stats.forEach((name, i) => {
             if (data.stats && data.stats[name] !== undefined) {
@@ -427,43 +496,39 @@ if (searchInput) {
     }
 
     // SAVE BUILD
-   const saveBuildBtn = document.getElementById('save-build-btn');
-if (saveBuildBtn) {
-    saveBuildBtn.addEventListener('click', async () => {
-        const buildData = getBuildData();
-        localStorage.setItem('eldenbook_build', JSON.stringify(buildData));
+    const saveBuildBtn = document.getElementById('save-build-btn');
+    if (saveBuildBtn) {
+        saveBuildBtn.addEventListener('click', async () => {
+            const buildData = getBuildData();
+            localStorage.setItem('eldenbook_build', JSON.stringify(buildData));
 
-        if (auth.currentUser) {
-            try {
-                // Verificar límite free
-                const perfil = await obtenerPerfil();
-                const isPremium = perfil?.isPremium || false;
+            if (auth.currentUser) {
+                try {
+                    const perfil = await obtenerPerfil();
+                    const isPremium = perfil?.isPremium || false;
 
-                if (!isPremium) {
-                    const totalBuilds = await contarMisBuilds();
-                    if (totalBuilds >= 3) {
-                        abrirModal(premiumModal);
-                        return;
+                    if (!isPremium) {
+                        const totalBuilds = await contarMisBuilds();
+                        if (totalBuilds >= 3) {
+                            abrirModal(document.getElementById('premium-modal'));
+                            return;
+                        }
                     }
+
+                    await guardarBuildFirestore(buildData);
+                    saveBuildBtn.textContent = '✓ Guardado en la nube!';
+                } catch (e) {
+                    console.error(e);
+                    saveBuildBtn.textContent = '✗ Error al guardar';
                 }
-
-                await guardarBuildFirestore(buildData);
-                saveBuildBtn.textContent = '✓ Guardado en la nube!';
-            } catch (e) {
-                console.error(e);
-                saveBuildBtn.textContent = '✗ Error al guardar';
+            } else {
+                saveBuildBtn.textContent = '✓ Guardado localmente';
             }
-        } else {
-            saveBuildBtn.textContent = '✓ Guardado localmente';
-        }
 
-        saveBuildBtn.style.color = 'gold';
-        setTimeout(() => {
-            saveBuildBtn.textContent = 'Save Build';
-            saveBuildBtn.style.color = '';
-        }, 2000);
-    });
-}
+            saveBuildBtn.style.color = 'gold';
+            setTimeout(() => { saveBuildBtn.textContent = 'Save Build'; saveBuildBtn.style.color = ''; }, 2000);
+        });
+    }
 
     // SHARE BUILD
     const shareBuildBtn = document.getElementById('share-build-btn');
@@ -498,11 +563,7 @@ if (saveBuildBtn) {
     const misBuildLista  = document.getElementById('mis-builds-lista');
     const closeMisBuilds = document.getElementById('close-mis-builds');
 
-    function closeMisBuildModal() {
-        if (!misBuildModal) return;
-        if (typeof misBuildModal.close === 'function') misBuildModal.close();
-        else misBuildModal.style.display = 'none';
-    }
+    function closeMisBuildModal() { cerrarModal(misBuildModal); }
 
     async function cargarMisBuilds() {
         if (!misBuildLista) return;
@@ -550,45 +611,16 @@ if (saveBuildBtn) {
     if (misBuildBtn) {
         misBuildBtn.addEventListener('click', () => {
             cargarMisBuilds();
-            if (typeof misBuildModal.showModal === 'function') misBuildModal.showModal();
-            else misBuildModal.style.display = 'block';
+            abrirModal(misBuildModal);
         });
     }
 
     if (closeMisBuilds) closeMisBuilds.addEventListener('click', closeMisBuildModal);
-    if (misBuildModal)  misBuildModal.addEventListener('click', e => { if (e.target === misBuildModal) closeMisBuildModal(); });
 
-    // ─── FUNCIONES GENÉRICAS PARA MODALES ────────────────────────
-
-    const modalOverlay = document.getElementById('modal-overlay');
-
-    function cerrarModal(modal) {
-        if (!modal) return;
-        if (typeof modal.close === 'function') modal.close();
-        else modal.style.display = 'none';
-    }
-
-    function abrirModal(modal) {
-        if (!modal) return;
-        if (typeof modal.showModal === 'function') modal.showModal();
-        else modal.style.display = 'block';
-    }
-
-    // ─── PREMIUM MODAL ────────────────────────────────────────────────
+    // ─── PREMIUM MODAL ────────────────────────────────────────────
     const premiumModal    = document.getElementById('premium-modal');
     const closePremiumBtn = document.getElementById('close-premium-modal');
-
     if (closePremiumBtn) closePremiumBtn.addEventListener('click', () => cerrarModal(premiumModal));
-
-    // Actualizar el overlay para cerrar también el premium modal
-    if (modalOverlay) {
-        modalOverlay.addEventListener('click', () => {
-            cerrarModal(document.getElementById('selector-modal'));
-            cerrarModal(document.getElementById('mis-builds-modal'));
-            cerrarModal(premiumModal);
-            slotActivo = null;
-        });
-    }
 
     // ─── AUTH UI ──────────────────────────────────────────────────
     const loginBtn     = document.getElementById('login-btn');
@@ -615,6 +647,5 @@ if (saveBuildBtn) {
     if (loginBtn)  loginBtn.addEventListener('click',  loginConGoogle);
     if (logoutBtn) logoutBtn.addEventListener('click', cerrarSesion);
 
-    // Inicializar estadísticas al cargar
     actualizarEstadisticas();
 });
