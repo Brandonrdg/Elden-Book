@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tarnished Book</title>
+    <title>Build Planner</title>
     <link rel="stylesheet" href="Styles/styles.css?v=2026">
 </head>
 <body>
     <div class="background">
         <div class="container">
-            <h1>Tarnished Book</h1>
-            <p class="disclaimer">⚠️ Este sitio no está afiliado, patrocinado ni respaldado por FromSoftware ni Bandai Namco. Todos los datos son de uso comunitario.</p>
+            <h1>Build Planner</h1>
+            <p class="disclaimer">⚠️ This tool is independent and not affiliated or endorsed by any video game company. Data is for personal and community use.</p>
             <div class="main">
                 <div class="left">
                     <div class="card">
@@ -19,53 +19,53 @@
                             <span class="build-name-icon">📜</span>
                             <div class="input-wrapper">
                                 <input id="build-name" class="build-name-input" type="text" placeholder=" ">
-                                <label for="build-name" class="floating-label">Nombre de la Build</label>
+                                <label for="build-name" class="floating-label">Build Name</label>
                             </div>
                         </div>
                     </div>
                     <div class="card">
-                        <h2>Equipamiento</h2>
-                        <h3 class="equip-subtitle">Armas</h3>
+                        <h2>Equipment</h2>
+                        <h3 class="equip-subtitle">Weapons</h3>
                         <div class="equip-slots">
-                            <button type="button" class="equip-slot" id="arma-derecha">⚔️ Mano Derecha</button>
-                            <button type="button" class="equip-slot" id="arma-izquierda">🛡️ Mano Izquierda</button>
+                            <button type="button" class="equip-slot" id="arma-derecha">⚔️ Right Hand</button>
+                            <button type="button" class="equip-slot" id="arma-izquierda">🛡️ Left Hand</button>
                         </div>
-                        <h3 class="equip-subtitle">Armadura</h3>
+                        <h3 class="equip-subtitle">Armor</h3>
                         <div class="equip-slots">
-                            <button type="button" class="equip-slot" id="armadura-cabeza">🪖 Cabeza</button>
-                            <button type="button" class="equip-slot" id="armadura-pecho">🥋 Pecho</button>
-                            <button type="button" class="equip-slot" id="armadura-manos">🧤 Manos</button>
-                            <button type="button" class="equip-slot" id="armadura-piernas">👢 Piernas</button>
+                            <button type="button" class="equip-slot" id="armadura-cabeza">🪖 Head</button>
+                            <button type="button" class="equip-slot" id="armadura-pecho">🥋 Chest</button>
+                            <button type="button" class="equip-slot" id="armadura-manos">🧤 Hands</button>
+                            <button type="button" class="equip-slot" id="armadura-piernas">👢 Legs</button>
                         </div>
-                        <h3 class="equip-subtitle">Talismanes</h3>
+                        <h3 class="equip-subtitle">Talismans</h3>
                         <div class="equip-slots">
-                            <button type="button" class="equip-slot" id="talisman-1">🔮 Talismán 1</button>
-                            <button type="button" class="equip-slot" id="talisman-2">🔮 Talismán 2</button>
-                            <button type="button" class="equip-slot" id="talisman-3">🔮 Talismán 3</button>
-                            <button type="button" class="equip-slot" id="talisman-4">🔮 Talismán 4</button>
+                            <button type="button" class="equip-slot" id="talisman-1">🔮 Talisman 1</button>
+                            <button type="button" class="equip-slot" id="talisman-2">🔮 Talisman 2</button>
+                            <button type="button" class="equip-slot" id="talisman-3">🔮 Talisman 3</button>
+                            <button type="button" class="equip-slot" id="talisman-4">🔮 Talisman 4</button>
                         </div>
                     </div>
                     <div class="card">
-                        <h2>Clase</h2>
+                        <h2>Class</h2>
                         <select id="class-selector" class="class-select">
-                            <option value="Vagabundo">Vagabundo</option>
-                            <option value="Héroe">Héroe</option>
-                            <option value="Confesor">Confesor</option>
-                            <option value="Astrólogo">Astrólogo</option>
-                            <option value="Samurái">Samurái</option>
-                            <option value="Bandido">Bandido</option>
-                            <option value="Prisionero">Prisionero</option>
-                            <option value="Profeta">Profeta</option>
-                            <option value="Guerrero">Guerrero</option>
+                            <option value="Vagabond">Vagabond</option>
+                            <option value="Hero">Hero</option>
+                            <option value="Confessor">Confessor</option>
+                            <option value="Astrologer">Astrologer</option>
+                            <option value="Samurai">Samurai</option>
+                            <option value="Bandit">Bandit</option>
+                            <option value="Prisoner">Prisoner</option>
+                            <option value="Prophet">Prophet</option>
+                            <option value="Warrior">Warrior</option>
                             <option value="Wretch">Wretch</option>
                         </select>
                     </div>
                     <div class="card" id="stats-card"></div>
                     <div class="card" id="build-stats-card">
-                        <h2>Estadísticas de la Build</h2>
+                        <h2>Build Statistics</h2>
                         <div class="bstat-grid">
                             <div class="bstat-group">
-                                <div class="bstat-group-title">Vitales</div>
+                                <div class="bstat-group-title">Vitals</div>
                                 <div class="bstat-row">
                                     <span class="bstat-label">❤️ HP</span>
                                     <div class="bstat-bar-wrap">
@@ -89,20 +89,20 @@
                                 </div>
                             </div>
                             <div class="bstat-group">
-                                <div class="bstat-group-title">Carga de Equipo</div>
+                                <div class="bstat-group-title">Equipment Load</div>
                                 <div class="bstat-row">
-                                    <span class="bstat-label">⚖️ Peso</span>
+                                    <span class="bstat-label">⚖️ Weight</span>
                                     <div class="bstat-bar-wrap">
                                         <div class="bstat-bar" id="bar-peso" style="--pct:0%; --color:#d4ac0d"></div>
                                     </div>
                                     <span class="bstat-val" id="val-peso">0</span>
                                 </div>
-                                <div class="bstat-carga-label" id="carga-label">Sin equipo</div>
+                                <div class="bstat-carga-label" id="carga-label">No equipment</div>
                             </div>
                             <div class="bstat-group">
-                                <div class="bstat-group-title">Efectos del Equipamiento</div>
+                                <div class="bstat-group-title">Equipment Effects</div>
                                 <div id="buffs-lista" class="buffs-lista">
-                                    <p class="buffs-empty">Equipa items para ver sus efectos</p>
+                                    <p class="buffs-empty">Equip items to see their effects</p>
                                 </div>
                             </div>
                         </div>
@@ -113,19 +113,19 @@
                         <div id="login-section">
                             <button id="login-btn" class="auth-btn">
                                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" style="vertical-align:middle; margin-right:6px;"/>
-                                Iniciar con Google
+                                Sign in with Google
                             </button>
                         </div>
                         <div id="user-section" style="display:none; align-items:center; gap:8px; flex-wrap:wrap;">
                             <img id="user-foto" width="32" style="border-radius:50%;"/>
                             <span id="user-nombre" style="color:gold;"></span>
-                            <button id="logout-btn" class="auth-btn">Cerrar sesión</button>
+                            <button id="logout-btn" class="auth-btn">Log out</button>
                         </div>
                     </div>
                     <div class="card">
                         <button id="share-build-btn">Share Build</button>
                         <button id="save-build-btn">Save Build</button>
-                        <button id="mis-builds-btn" style="display:none;">Mis Builds</button>
+                        <button id="mis-builds-btn" style="display:none;">My Builds</button>
                     </div>
                     
                 </div>
@@ -140,21 +140,21 @@
     <div id="selector-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="modal-title">Seleccionar Item</h2>
+                <h2 id="modal-title">Select Item</h2>
                 <button id="close-modal" class="close-btn">&times;</button>
             </div>
             <div class="modal-search">
-                <input type="text" id="modal-search-input" placeholder="Buscar item..." class="modal-search-input">
+                <input type="text" id="modal-search-input" placeholder="Search item..." class="modal-search-input">
             </div>
             <div id="modal-options" class="modal-grid"></div>
         </div>
     </div>
 
-    <!-- Modal Mis Builds -->
+    <!-- Modal My Builds -->
     <div id="mis-builds-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Mis Builds</h2>
+                <h2>My Builds</h2>
                 <button id="close-mis-builds" class="close-btn">&times;</button>
             </div>
             <div id="mis-builds-lista" class="modal-grid"></div>

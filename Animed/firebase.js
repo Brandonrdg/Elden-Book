@@ -32,14 +32,14 @@ export function onUsuarioCambia(callback) {
 export async function guardarBuildFirestore(buildData) {
     const user = auth.currentUser;
     if (!user) throw new Error('No hay usuario autenticado');
-    const buildId = buildData.nombre.replace(/\s+/g, '-').toLowerCase() + '-' + Date.now();
+    const buildId = buildData.name.replace(/\s+/g, '-').toLowerCase() + '-' + Date.now();
     const ref = doc(db, 'builds', buildId);
     await setDoc(ref, {
         ...buildData,
         uid: user.uid,
-        autorNombre: user.displayName,
-        autorFoto: user.photoURL,
-        creadaEn: new Date().toISOString(),
+        authorName: user.displayName,
+        authorPhoto: user.photoURL,
+        createdAt: new Date().toISOString(),
         buildId
     });
     return buildId;
@@ -56,19 +56,4 @@ export async function obtenerMisBuilds() {
 export async function eliminarBuild(buildId) {
     const ref = doc(db, 'builds', buildId);
     await deleteDoc(ref);
-}
-export async function obtenerPerfil() {
-    const user = auth.currentUser;
-    if (!user) return null;
-    const ref = doc(db, 'usuarios', user.uid);
-    const snap = await getDoc(ref);
-    return snap.exists() ? snap.data() : { isPremium: false };
-}
-
-export async function contarMisBuilds() {
-    const user = auth.currentUser;
-    if (!user) return 0;
-    const q = query(collection(db, 'builds'), where('uid', '==', user.uid));
-    const snap = await getDocs(q);
-    return snap.size;
 }

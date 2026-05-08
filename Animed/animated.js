@@ -1,4 +1,4 @@
-import { loginConGoogle, cerrarSesion, onUsuarioCambia, guardarBuildFirestore, obtenerMisBuilds, eliminarBuild, obtenerPerfil, auth } from './firebase.js';
+import { loginConGoogle, cerrarSesion, onUsuarioCambia, guardarBuildFirestore, obtenerMisBuilds, eliminarBuild, auth } from './firebase.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const statsCard = document.getElementById('stats-card');
@@ -37,44 +37,53 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─── DATOS ────────────────────────────────────────────────────
     const statColors = {
         'vigor':        { dark: '#500a0a', light: '#ff4d4d' },
-        'mente':        { dark: '#0a1a50', light: '#4d79ff' },
-        'resistencia':  { dark: '#0a500a', light: '#4dff4d' },
-        'fuerza':       { dark: '#4b3621', light: '#d2b48c' },
-        'destreza':     { dark: '#50500a', light: '#ffff4d' },
-        'inteligencia': { dark: '#2b0a50', light: '#a64dff' },
-        'fe':           { dark: '#503c0a', light: '#ffd700' },
-        'arcano':       { dark: '#300000', light: '#800000' }
+        'mind':        { dark: '#0a1a50', light: '#4d79ff' },
+        'endurance':  { dark: '#0a500a', light: '#4dff4d' },
+        'strength':       { dark: '#4b3621', light: '#d2b48c' },
+        'dexterity':     { dark: '#50500a', light: '#ffff4d' },
+        'intelligence': { dark: '#2b0a50', light: '#a64dff' },
+        'faith':           { dark: '#503c0a', light: '#ffd700' },
+        'arcane':       { dark: '#300000', light: '#800000' }
     };
 
-    const stats = ['Vigor', 'Mente', 'Resistencia', 'Fuerza', 'Destreza', 'Inteligencia', 'Fe', 'Arcano'];
+    const stats = ['Vigor', 'Mind', 'Endurance', 'Strength', 'Dexterity', 'Intelligence', 'Faith', 'Arcane'];
 
-    const statsPorClase = {
-        'Vagabundo':  { nivel: 9,  Vigor: 15, Mente: 10, Resistencia: 11, Fuerza: 14, Destreza: 13, Inteligencia: 9,  Fe: 9,  Arcano: 7  },
-        'Héroe':      { nivel: 7,  Vigor: 14, Mente: 9,  Resistencia: 12, Fuerza: 16, Destreza: 9,  Inteligencia: 7,  Fe: 8,  Arcano: 11 },
-        'Confesor':   { nivel: 10, Vigor: 10, Mente: 13, Resistencia: 10, Fuerza: 12, Destreza: 12, Inteligencia: 9,  Fe: 14, Arcano: 9  },
-        'Astrólogo':  { nivel: 6,  Vigor: 9,  Mente: 15, Resistencia: 9,  Fuerza: 8,  Destreza: 12, Inteligencia: 16, Fe: 7,  Arcano: 9  },
-        'Samurái':    { nivel: 9,  Vigor: 12, Mente: 11, Resistencia: 13, Fuerza: 12, Destreza: 15, Inteligencia: 9,  Fe: 8,  Arcano: 8  },
-        'Bandido':    { nivel: 5,  Vigor: 10, Mente: 11, Resistencia: 10, Fuerza: 9,  Destreza: 13, Inteligencia: 9,  Fe: 8,  Arcano: 14 },
-        'Prisionero': { nivel: 9,  Vigor: 11, Mente: 12, Resistencia: 11, Fuerza: 11, Destreza: 14, Inteligencia: 14, Fe: 6,  Arcano: 9  },
-        'Profeta':    { nivel: 7,  Vigor: 10, Mente: 14, Resistencia: 8,  Fuerza: 11, Destreza: 10, Inteligencia: 7,  Fe: 16, Arcano: 10 },
-        'Guerrero':   { nivel: 8,  Vigor: 11, Mente: 12, Resistencia: 11, Fuerza: 10, Destreza: 16, Inteligencia: 10, Fe: 8,  Arcano: 9  },
-        'Wretch':     { nivel: 1,  Vigor: 10, Mente: 10, Resistencia: 10, Fuerza: 10, Destreza: 10, Inteligencia: 10, Fe: 10, Arcano: 10 }
+    const statsByClass = {
+        'Vagabond':  { level: 9,  Vigor: 15, Mind: 10, Endurance: 11, Strength: 14, Dexterity: 13, Intelligence: 9,  Faith: 9,  Arcane: 7  },
+        'Vagabundo':  { level: 9,  Vigor: 15, Mind: 10, Endurance: 11, Strength: 14, Dexterity: 13, Intelligence: 9,  Faith: 9,  Arcane: 7  },
+        'Hero':      { level: 7,  Vigor: 14, Mind: 9,  Endurance: 12, Strength: 16, Dexterity: 9,  Intelligence: 7,  Faith: 8,  Arcane: 11 },
+        'Héroe':      { level: 7,  Vigor: 14, Mind: 9,  Endurance: 12, Strength: 16, Dexterity: 9,  Intelligence: 7,  Faith: 8,  Arcane: 11 },
+        'Confessor':   { level: 10, Vigor: 10, Mind: 13, Endurance: 10, Strength: 12, Dexterity: 12, Intelligence: 9,  Faith: 14, Arcane: 9  },
+        'Confesor':   { level: 10, Vigor: 10, Mind: 13, Endurance: 10, Strength: 12, Dexterity: 12, Intelligence: 9,  Faith: 14, Arcane: 9  },
+        'Astrologer':  { level: 6,  Vigor: 9,  Mind: 15, Endurance: 9,  Strength: 8,  Dexterity: 12, Intelligence: 16, Faith: 7,  Arcane: 9  },
+        'Astrólogo':  { level: 6,  Vigor: 9,  Mind: 15, Endurance: 9,  Strength: 8,  Dexterity: 12, Intelligence: 16, Faith: 7,  Arcane: 9  },
+        'Samurai':    { level: 9,  Vigor: 12, Mind: 11, Endurance: 13, Strength: 12, Dexterity: 15, Intelligence: 9,  Faith: 8,  Arcane: 8  },
+        'Samurái':    { level: 9,  Vigor: 12, Mind: 11, Endurance: 13, Strength: 12, Dexterity: 15, Intelligence: 9,  Faith: 8,  Arcane: 8  },
+        'Bandit':    { level: 5,  Vigor: 10, Mind: 11, Endurance: 10, Strength: 9,  Dexterity: 13, Intelligence: 9,  Faith: 8,  Arcane: 14 },
+        'Bandido':    { level: 5,  Vigor: 10, Mind: 11, Endurance: 10, Strength: 9,  Dexterity: 13, Intelligence: 9,  Faith: 8,  Arcane: 14 },
+        'Prisoner': { level: 9,  Vigor: 11, Mind: 12, Endurance: 11, Strength: 11, Dexterity: 14, Intelligence: 14, Faith: 6,  Arcane: 9  },
+        'Prisionero': { level: 9,  Vigor: 11, Mind: 12, Endurance: 11, Strength: 11, Dexterity: 14, Intelligence: 14, Faith: 6,  Arcane: 9  },
+        'Prophet':    { level: 7,  Vigor: 10, Mind: 14, Endurance: 8,  Strength: 11, Dexterity: 10, Intelligence: 7,  Faith: 16, Arcane: 10 },
+        'Profeta':    { level: 7,  Vigor: 10, Mind: 14, Endurance: 8,  Strength: 11, Dexterity: 10, Intelligence: 7,  Faith: 16, Arcane: 10 },
+        'Warrior':   { level: 8,  Vigor: 11, Mind: 12, Endurance: 11, Strength: 10, Dexterity: 16, Intelligence: 10, Faith: 8,  Arcane: 9  },
+        'Guerrero':   { level: 8,  Vigor: 11, Mind: 12, Endurance: 11, Strength: 10, Dexterity: 16, Intelligence: 10, Faith: 8,  Arcane: 9  },
+        'Wretch':     { level: 1,  Vigor: 10, Mind: 10, Endurance: 10, Strength: 10, Dexterity: 10, Intelligence: 10, Faith: 10, Arcane: 10 }
     };
 
     const equipSlots = {
-        'arma-derecha':    { type: 'armas',     label: '⚔️ Mano Derecha' },
-        'arma-izquierda':  { type: 'armas',     label: '🛡️ Mano Izquierda' },
-        'armadura-cabeza': { type: 'armaduras', label: '🪖 Cabeza' },
-        'armadura-pecho':  { type: 'armaduras', label: '🥋 Pecho' },
-        'armadura-manos':  { type: 'armaduras', label: '🧤 Manos' },
-        'armadura-piernas':{ type: 'armaduras', label: '👢 Piernas' },
-        'talisman-1':      { type: 'talismans', label: '🔮 Talismán 1' },
-        'talisman-2':      { type: 'talismans', label: '🔮 Talismán 2' },
-        'talisman-3':      { type: 'talismans', label: '🔮 Talismán 3' },
-        'talisman-4':      { type: 'talismans', label: '🔮 Talismán 4' },
+        'arma-derecha':    { type: 'weapons',     label: '⚔️ Right Hand' },
+        'arma-izquierda':  { type: 'weapons',     label: '🛡️ Left Hand' },
+        'armadura-cabeza': { type: 'armor', label: '🪖 Head' },
+        'armadura-pecho':  { type: 'armor', label: '🥋 Chest' },
+        'armadura-manos':  { type: 'armor', label: '🧤 Hands' },
+        'armadura-piernas':{ type: 'armor', label: '👢 Legs' },
+        'talisman-1':      { type: 'talismans', label: '🔮 Talisman 1' },
+        'talisman-2':      { type: 'talismans', label: '🔮 Talisman 2' },
+        'talisman-3':      { type: 'talismans', label: '🔮 Talisman 3' },
+        'talisman-4':      { type: 'talismans', label: '🔮 Talisman 4' },
     };
 
-    const filtroArmaduras = {
+    const armorFilter = {
         'armadura-cabeza':  'Helm',
         'armadura-pecho':   'Chest Armor',
         'armadura-manos':   'Gauntlets',
@@ -102,44 +111,44 @@ document.addEventListener('DOMContentLoaded', () => {
         else                  return Math.floor(1400 + (vigor - 60) * (200 / 39));
     }
 
-    function calcularFP(mente) {
-        if (mente <= 15)      return Math.floor(50 + (mente - 1) * (50 / 14));
-        else if (mente <= 35) return Math.floor(100 + (mente - 15) * (100 / 20));
-        else if (mente <= 60) return Math.floor(200 + (mente - 35) * (150 / 25));
-        else                  return Math.floor(350 + (mente - 60) * (50 / 39));
+    function calcularFP(mind) {
+        if (mind <= 15)      return Math.floor(50 + (mind - 1) * (50 / 14));
+        else if (mind <= 35) return Math.floor(100 + (mind - 15) * (100 / 20));
+        else if (mind <= 60) return Math.floor(200 + (mind - 35) * (150 / 25));
+        else                  return Math.floor(350 + (mind - 60) * (50 / 39));
     }
 
-    function calcularStamina(resistencia) {
-        if (resistencia <= 15)      return Math.floor(80 + (resistencia - 1) * (40 / 14));
-        else if (resistencia <= 35) return Math.floor(120 + (resistencia - 15) * (40 / 20));
-        else if (resistencia <= 60) return Math.floor(160 + (resistencia - 35) * (40 / 25));
-        else                        return Math.floor(200 + (resistencia - 60) * (20 / 39));
+    function calcularStamina(endurance) {
+        if (endurance <= 15)      return Math.floor(80 + (endurance - 1) * (40 / 14));
+        else if (endurance <= 35) return Math.floor(120 + (endurance - 15) * (40 / 20));
+        else if (endurance <= 60) return Math.floor(160 + (endurance - 35) * (40 / 25));
+        else                        return Math.floor(200 + (endurance - 60) * (20 / 39));
     }
 
-    function calcularCargaMaxima(fuerza) {
-        return Math.round((40 + fuerza * 0.9) * 10) / 10;
+    function calcularCargaMaxima(strength) {
+        return Math.round((40 + strength * 0.9) * 10) / 10;
     }
 
-    function getNivelCarga(pesoActual, pesoMax) {
-        const ratio = pesoActual / pesoMax;
-        if (ratio <= 0.299) return { label: '⚡ Carga Ligera', color: '#2ecc71' };
-        if (ratio <= 0.699) return { label: '🏃 Carga Media',  color: '#f1c40f' };
-        if (ratio <= 0.999) return { label: '🐢 Carga Pesada', color: '#e67e22' };
-        return                     { label: '🪨 Sobrecargado', color: '#e74c3c' };
+    function getLoadLevel(currentWeight, maxWeight) {
+        const ratio = currentWeight / maxWeight;
+        if (ratio <= 0.299) return { label: '⚡ Light Load', color: '#2ecc71' };
+        if (ratio <= 0.699) return { label: '🏃 Medium Load',  color: '#f1c40f' };
+        if (ratio <= 0.999) return { label: '🐢 Heavy Load', color: '#e67e22' };
+        return                     { label: '🪨 Overloaded', color: '#e74c3c' };
     }
 
-    function actualizarBuffs() {
+    function updateBuffs() {
         const buffsList = document.getElementById('buffs-lista');
         if (!buffsList) return;
         const buffs = [];
         Object.keys(equipSlots).forEach(slotId => {
             const btn = document.getElementById(slotId);
             if (btn && btn.dataset.description && btn.dataset.description !== 'undefined' && btn.dataset.itemName) {
-                buffs.push({ nombre: btn.dataset.itemName, descripcion: btn.dataset.description });
+                buffs.push({ name: btn.dataset.itemName, description: btn.dataset.description });
             }
         });
         if (buffs.length === 0) {
-            buffsList.innerHTML = '<p class="buffs-empty">Equipa items para ver sus efectos</p>';
+            buffsList.innerHTML = '<p class="buffs-empty">Equip items to see their effects</p>';
             return;
         }
         buffsList.innerHTML = '';
@@ -147,8 +156,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const div = document.createElement('div');
             div.className = 'buff-item';
             div.innerHTML = `
-                <span class="buff-nombre">${buff.nombre}</span>
-                <span class="buff-desc">${buff.descripcion}</span>
+                <span class="buff-name">${buff.name}</span>
+                <span class="buff-desc">${buff.description}</span>
             `;
             buffsList.appendChild(div);
         });
@@ -157,21 +166,21 @@ document.addEventListener('DOMContentLoaded', () => {
     function actualizarEstadisticas() {
         const inputs = statContainer.querySelectorAll('input[type="range"]');
         const vigor       = inputs[0] ? Number(inputs[0].value) : 10;
-        const mente       = inputs[1] ? Number(inputs[1].value) : 10;
-        const resistencia = inputs[2] ? Number(inputs[2].value) : 10;
-        const fuerza      = inputs[3] ? Number(inputs[3].value) : 10;
+        const mind        = inputs[1] ? Number(inputs[1].value) : 10;
+        const endurance  = inputs[2] ? Number(inputs[2].value) : 10;
+        const strength   = inputs[3] ? Number(inputs[3].value) : 10;
 
         const hp      = calcularHP(vigor);
-        const fp      = calcularFP(mente);
-        const stamina = calcularStamina(resistencia);
-        const pesoMax = calcularCargaMaxima(fuerza);
+        const fp      = calcularFP(mind);
+        const stamina = calcularStamina(endurance);
+        const maxWeight = calcularCargaMaxima(strength);
 
-        let pesoTotal = 0;
+        let totalWeight = 0;
         Object.keys(equipSlots).forEach(slotId => {
             const btn = document.getElementById(slotId);
-            if (btn) pesoTotal += Number(btn.dataset.weight || 0);
+            if (btn) totalWeight += Number(btn.dataset.weight || 0);
         });
-        pesoTotal = Math.round(pesoTotal * 10) / 10;
+        totalWeight = Math.round(totalWeight * 10) / 10;
 
         const maxHP = 1900, maxFP = 450, maxStamina = 240;
 
@@ -183,49 +192,49 @@ document.addEventListener('DOMContentLoaded', () => {
         const barFp      = document.getElementById('bar-fp');
         const barStamina = document.getElementById('bar-stamina');
         const barPeso    = document.getElementById('bar-peso');
-        const cargaLabel = document.getElementById('carga-label');
+        const loadLabel = document.getElementById('carga-label');
 
         if (valHp)      valHp.textContent      = hp;
         if (valFp)      valFp.textContent      = fp;
         if (valStamina) valStamina.textContent = stamina;
-        if (valPeso)    valPeso.textContent    = `${pesoTotal} / ${pesoMax}`;
+        if (valPeso)    valPeso.textContent    = `${totalWeight} / ${maxWeight}`;
 
         if (barHp)      barHp.style.setProperty('--pct',      `${Math.min(hp / maxHP * 100, 100)}%`);
         if (barFp)      barFp.style.setProperty('--pct',      `${Math.min(fp / maxFP * 100, 100)}%`);
         if (barStamina) barStamina.style.setProperty('--pct', `${Math.min(stamina / maxStamina * 100, 100)}%`);
-        if (barPeso)    barPeso.style.setProperty('--pct',    `${Math.min(pesoTotal / pesoMax * 100, 100)}%`);
+        if (barPeso)    barPeso.style.setProperty('--pct',    `${Math.min(totalWeight / maxWeight * 100, 100)}%`);
 
-        if (cargaLabel) {
-            const carga = getNivelCarga(pesoTotal, pesoMax);
-            cargaLabel.textContent = carga.label;
-            cargaLabel.style.color = carga.color;
+        if (loadLabel) {
+            const load = getLoadLevel(totalWeight, maxWeight);
+            loadLabel.textContent = load.label;
+            loadLabel.style.color = load.color;
         }
 
-        actualizarBuffs();
+        updateBuffs();
     }
 
-    // ─── NIVEL Y SUMMARY ─────────────────────────────────────────
-    function calcularNivel(buildStats, clase) {
-        const base = statsPorClase[clase];
+    // ─── LEVEL AND SUMMARY ─────────────────────────────────────────
+    function calculateLevel(buildStats, characterClass) {
+        const base = statsByClass[characterClass];
         if (!base) return '?';
-        let puntos = 0;
+        let points = 0;
         stats.forEach(name => {
-            puntos += Math.max(0, (buildStats[name] || 0) - (base[name] || 0));
+            points += Math.max(0, (buildStats[name] || 0) - (base[name] || 0));
         });
-        return base.nivel + puntos;
+        return base.level + points;
     }
 
     function updateBuildSummary() {
         const inputs = statContainer.querySelectorAll('input[type="range"]');
-        const claseActual = classSelector ? classSelector.value : 'Vagabundo';
-        const base = statsPorClase[claseActual];
-        let puntosGastados = 0;
+        const currentClass = classSelector ? classSelector.value : 'Vagabond';
+        const base = statsByClass[currentClass];
+        let pointsSpent = 0;
         stats.forEach((name, i) => {
-            if (inputs[i]) puntosGastados += Math.max(0, Number(inputs[i].value) - (base[name] || 0));
+            if (inputs[i]) pointsSpent += Math.max(0, Number(inputs[i].value) - (base[name] || 0));
         });
-        const nivel = base.nivel + puntosGastados;
-        buildSummary.textContent = `NVL: ${nivel}`;
-        container.style.setProperty('--nivel-poder', Math.min(nivel / 800, 1));
+        const level = base.level + pointsSpent;
+        buildSummary.textContent = `LVL: ${level}`;
+        container.style.setProperty('--nivel-poder', Math.min(level / 800, 1));
     }
 
     // ─── CREAR SLIDERS ────────────────────────────────────────────
@@ -270,8 +279,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ─── APLICAR CLASE ────────────────────────────────────────────
-    function aplicarClase(nombreClase) {
-        const base = statsPorClase[nombreClase];
+    function applyClass(className) {
+        const base = statsByClass[className];
         if (!base) return;
         const inputs = statContainer.querySelectorAll('input[type="range"]');
         stats.forEach((name, i) => {
@@ -281,8 +290,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (classSelector) {
-        classSelector.addEventListener('change', () => aplicarClase(classSelector.value));
-        aplicarClase(classSelector.value);
+        classSelector.addEventListener('change', () => applyClass(classSelector.value));
+        applyClass(classSelector.value);
     }
 
     // ─── MODAL EQUIPAMIENTO ───────────────────────────────────────
@@ -300,9 +309,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const limit = 100;
         let baseUrl;
 
-        if (type === 'armaduras') {
+        if (type === 'armor') {
             baseUrl = 'https://eldenring.fanapis.com/api/armors';
-        } else if (type === 'armas') {
+        } else if (type === 'weapons') {
             baseUrl = 'https://eldenring.fanapis.com/api/weapons';
         } else {
             baseUrl = 'https://eldenring.fanapis.com/api/talismans';
@@ -329,7 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!selectorModal || !modalTitle || !modalOptions) return;
         slotActivo = slotId;
         modalTitle.textContent = title;
-        modalOptions.innerHTML = '<p style="color:gold; text-align:center;">Cargando...</p>';
+        modalOptions.innerHTML = '<p style="color:gold; text-align:center;">Loading...</p>';
         abrirModal(selectorModal);
 
         const searchInput = document.getElementById('modal-search-input');
@@ -349,11 +358,11 @@ document.addEventListener('DOMContentLoaded', () => {
             modalOptions.innerHTML = '';
             let itemsFiltrados = items;
 
-            if (type === 'armaduras') {
-                const categoria = filtroArmaduras[slotId];
+            if (type === 'armor') {
+                const category = armorFilter[slotId];
 
                 itemsFiltrados = items.filter(item => {
-                return item.category === categoria;
+                return item.category === category;
                 });
             }
 
@@ -361,7 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const clearBtn = document.createElement('button');
             clearBtn.type = 'button';
             clearBtn.className = 'option-item option-item--clear';
-            clearBtn.textContent = '✕ Quitar item';
+            clearBtn.textContent = '✕ Remove item';
             clearBtn.addEventListener('click', () => {
                 const btn = document.getElementById(slotActivo);
                 if (btn) {
@@ -387,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.className = 'option-item';
                 btn.innerHTML = `
                     <span class="item-nombre">${item.name}</span>
-                    ${item.weight ? `<span class="item-peso">Peso: ${item.weight}</span>` : ''}
+                    ${item.weight ? `<span class="item-peso">Weight: ${item.weight}</span>` : ''}
                 `;
                 btn.addEventListener('click', () => {
                     const slotBtn = document.getElementById(slotActivo);
@@ -428,14 +437,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (e) {
             console.error(e);
-            modalOptions.innerHTML = '<p style="color:red; text-align:center;">Error al cargar items.</p>';
+            modalOptions.innerHTML = '<p style="color:red; text-align:center;">Error loading items.</p>';
         }
     }
 
     if (closeModalBtn) closeModalBtn.addEventListener('click', closeSelector);
     Object.entries(equipSlots).forEach(([slotId, info]) => {
         const btn = document.getElementById(slotId);
-        if (btn) btn.addEventListener('click', () => openSelector(slotId, `Seleccionar ${info.label}`, info.type));
+        if (btn) btn.addEventListener('click', () => openSelector(slotId, `Select ${info.label}`, info.type));
     });
 
     // ─── GUARDAR Y COMPARTIR ──────────────────────────────────────
@@ -457,21 +466,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         return {
-            nombre: buildNameInput ? buildNameInput.value : 'Sin nombre',
-            clase:  classSelector  ? classSelector.value  : '',
-            equipo: equipData,
+            name: buildNameInput ? buildNameInput.value : 'Unnamed',
+            characterClass:  classSelector  ? classSelector.value  : '',
+            equipment: equipData,
             stats:  statsData
         };
     }
 
     function loadBuildData(data) {
         const buildNameInput = document.getElementById('build-name');
-        if (buildNameInput) buildNameInput.value = data.nombre || '';
-        if (classSelector && data.clase) {
-            classSelector.value = data.clase;
-            aplicarClase(data.clase);
+        if (buildNameInput) buildNameInput.value = data.name || '';
+        if (classSelector && data.characterClass) {
+            classSelector.value = data.characterClass;
+            applyClass(data.characterClass);
         }
-        if (data.equipo) {
+        if (data.equipment) {
             Object.entries(data.equipo).forEach(([slotId, itemData]) => {
                 const btn = document.getElementById(slotId);
                 if (btn && itemData.name && itemData.name !== equipSlots[slotId]?.label) {
@@ -503,13 +512,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (auth.currentUser) {
                 try {
                     await guardarBuildFirestore(buildData);
-                    saveBuildBtn.textContent = '✓ Guardado en la nube!';
+                    saveBuildBtn.textContent = '✓ Saved to cloud!';
                 } catch (e) {
                     console.error(e);
-                    saveBuildBtn.textContent = '✗ Error al guardar';
+                    saveBuildBtn.textContent = '✗ Save error';
                 }
             } else {
-                saveBuildBtn.textContent = '✓ Guardado localmente';
+                saveBuildBtn.textContent = '✓ Saved locally';
             }
 
             saveBuildBtn.style.color = 'gold';
@@ -525,14 +534,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(buildData))));
             const shareUrl = `${window.location.origin}${window.location.pathname}?build=${encoded}`;
             navigator.clipboard.writeText(shareUrl).then(() => {
-                shareBuildBtn.textContent = '✓ Link copiado!';
+                shareBuildBtn.textContent = '✓ Link copied!';
                 shareBuildBtn.style.color = 'gold';
                 setTimeout(() => { shareBuildBtn.textContent = 'Share Build'; shareBuildBtn.style.color = ''; }, 2000);
-            }).catch(() => { prompt('Copia este link:', shareUrl); });
+            }).catch(() => { prompt('Copy this link:', shareUrl); });
         });
     }
 
-    // Cargar build desde URL
+    // LOAD BUILD FROM URL
     const urlParams  = new URLSearchParams(window.location.search);
     const buildParam = urlParams.get('build');
     if (buildParam) {
@@ -540,13 +549,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const decoded = JSON.parse(decodeURIComponent(escape(atob(buildParam))));
             loadBuildData(decoded);
         } catch (e) {
-            console.warn('Link de build inválido:', e);
+            console.warn('Invalid build link:', e);
         }
     }
 
-    // ─── MIS BUILDS ───────────────────────────────────────────────
-    const misBuildBtn    = document.getElementById('mis-builds-btn');
-    const misBuildModal  = document.getElementById('mis-builds-modal');
+    const misBuildBtn   = document.getElementById('mis-builds-btn');
+    const misBuildModal = document.getElementById('mis-builds-modal');
     const misBuildLista  = document.getElementById('mis-builds-lista');
     const closeMisBuilds = document.getElementById('close-mis-builds');
 
@@ -554,26 +562,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function cargarMisBuilds() {
         if (!misBuildLista) return;
-        misBuildLista.innerHTML = '<p style="color:gold; text-align:center;">Cargando...</p>';
+        misBuildLista.innerHTML = '<p style="color:gold; text-align:center;">Loading...</p>';
         try {
             const builds = await obtenerMisBuilds();
             if (builds.length === 0) {
-                misBuildLista.innerHTML = '<p style="color:#aaa; text-align:center;">No tienes builds guardadas aún.</p>';
+                misBuildLista.innerHTML = '<p style="color:#aaa; text-align:center;">You have no saved builds yet.</p>';
                 return;
             }
             misBuildLista.innerHTML = '';
             builds.forEach(build => {
                 const card = document.createElement('div');
                 card.className = 'build-card';
-                const nivel = calcularNivel(build.stats || {}, build.clase || 'Vagabundo');
+                const level = calculateLevel(build.stats || {}, build.characterClass || 'Vagabond');
                 card.innerHTML = `
                     <div class="build-card-info">
-                        <span class="build-card-nombre">${build.nombre || 'Sin nombre'}</span>
-                        <span class="build-card-meta">${build.clase || ''} · NVL ${nivel}</span>
+                        <span class="build-card-name">${build.name || 'Unnamed'}</span>
+                        <span class="build-card-meta">${build.characterClass || ''} · LVL ${level}</span>
                     </div>
                     <div class="build-card-actions">
-                        <button class="btn-cargar">Cargar</button>
-                        <button class="btn-eliminar">Eliminar</button>
+                        <button class="btn-cargar">Load</button>
+                        <button class="btn-eliminar">Delete</button>
                     </div>
                 `;
                 card.querySelector('.btn-cargar').addEventListener('click', () => {
@@ -584,14 +592,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     await eliminarBuild(build.buildId);
                     card.remove();
                     if (misBuildLista.children.length === 0) {
-                        misBuildLista.innerHTML = '<p style="color:#aaa; text-align:center;">No tienes builds guardadas aún.</p>';
+                        misBuildLista.innerHTML = '<p style="color:#aaa; text-align:center;">You have no saved builds yet.</p>';
                     }
                 });
                 misBuildLista.appendChild(card);
             });
         } catch (e) {
             console.error(e);
-            misBuildLista.innerHTML = '<p style="color:red; text-align:center;">Error al cargar builds.</p>';
+            misBuildLista.innerHTML = '<p style="color:red; text-align:center;">Error loading builds.</p>';
         }
     }
 
@@ -604,23 +612,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (closeMisBuilds) closeMisBuilds.addEventListener('click', closeMisBuildModal);
 
-    // ─── PREMIUM MODAL ────────────────────────────────────────────
-    // Removido
 
-    // ─── AUTH UI ──────────────────────────────────────────────────
     const loginBtn     = document.getElementById('login-btn');
     const logoutBtn    = document.getElementById('logout-btn');
     const loginSection = document.getElementById('login-section');
     const userSection  = document.getElementById('user-section');
     const userFoto     = document.getElementById('user-foto');
-    const userNombre   = document.getElementById('user-nombre');
+    const userName   = document.getElementById('user-nombre');
 
     onUsuarioCambia((user) => {
         if (user) {
             loginSection.style.display = 'none';
             userSection.style.display  = 'flex';
             userFoto.src               = user.photoURL;
-            userNombre.textContent     = user.displayName;
+            userName.textContent     = user.displayName;
             if (misBuildBtn) misBuildBtn.style.display = 'inline-flex';
         } else {
             loginSection.style.display = 'block';
