@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elden Book</title>
+    <title>Tarnished Book</title>
     <link rel="stylesheet" href="Styles/styles.css">
 </head>
 <body>
     <div class="background">
         <div class="container">
-            <h1>Elden Book</h1>
+            <h1>Tarnished Book</h1>
+            <p class="disclaimer">⚠️ Este sitio no está afiliado, patrocinado ni respaldado por FromSoftware ni Bandai Namco. Todos los datos son de uso comunitario.</p>
             <div class="main">
                 <div class="left">
                     <div class="card">
@@ -126,10 +127,7 @@
                         <button id="save-build-btn">Save Build</button>
                         <button id="mis-builds-btn" style="display:none;">Mis Builds</button>
                     </div>
-                    <div class="card">
-                        <h3>ADS</h3>
-                        <p>Publicidad</p>
-                    </div>
+                    
                 </div>
             </div>
         </div>
@@ -162,30 +160,6 @@
             <div id="mis-builds-lista" class="modal-grid"></div>
         </div>
     </div>
-    <!-- Modal Premium -->
-<div id="premium-modal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header premium-header">
-            <h2>✨ Elden Book Premium</h2>
-            <button id="close-premium-modal" class="close-btn">&times;</button>
-        </div>
-        <div class="premium-body">
-            <div class="premium-icon">👑</div>
-            <p class="premium-titulo">Has alcanzado el límite de builds</p>
-            <p class="premium-subtitulo">Los usuarios free pueden guardar hasta <strong>3 builds</strong>. Hazte Premium para desbloquear todo el potencial.</p>
-            <div class="premium-features">
-                <div class="premium-feature">✅ Builds ilimitadas</div>
-                <div class="premium-feature">✅ Comparar builds</div>
-                <div class="premium-feature">✅ Stats avanzados</div>
-                <div class="premium-feature">✅ Sin anuncios</div>
-                <div class="premium-feature">✅ Insignia Premium 👑</div>
-            </div>
-            <button id="premium-cta-btn" class="premium-cta">✨ Hazte Premium</button>
-            <p class="premium-coming-soon">Próximamente disponible</p>
-        </div>
-    </div>
-</div>
-
 
     <script type="module" src="Animed/firebase.js"></script>
     <script type="module" src="Animed/animated.js"></script>

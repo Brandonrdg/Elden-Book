@@ -1,4 +1,4 @@
-import { loginConGoogle, cerrarSesion, onUsuarioCambia, guardarBuildFirestore, obtenerMisBuilds, eliminarBuild, obtenerPerfil, contarMisBuilds, auth } from './firebase.js';
+import { loginConGoogle, cerrarSesion, onUsuarioCambia, guardarBuildFirestore, obtenerMisBuilds, eliminarBuild, obtenerPerfil, auth } from './firebase.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const statsCard = document.getElementById('stats-card');
@@ -30,7 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
         modalOverlay.addEventListener('click', () => {
             cerrarModal(document.getElementById('selector-modal'));
             cerrarModal(document.getElementById('mis-builds-modal'));
-            cerrarModal(document.getElementById('premium-modal'));
             slotActivo = null;
         });
     }
@@ -295,20 +294,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const itemCache = {};
     let slotActivo = null;
 
-    // Función para paginar y traer todos los items
-    async function fetchTodos(baseUrl) {
+    async function fetchTodos(type) {
         let todos = [];
         let page = 0;
         const limit = 100;
+        let baseUrl;
+
+        if (type === 'armaduras') {
+            baseUrl = 'https://eldenring.fanapis.com/api/armors';
+        } else if (type === 'armas') {
+            baseUrl = 'https://eldenring.fanapis.com/api/weapons';
+        } else {
+            baseUrl = 'https://eldenring.fanapis.com/api/talismans';
+        }
+
         while (true) {
-            const sep = baseUrl.includes('?') ? '&' : '?';
-            const res = await fetch(`${baseUrl}${sep}limit=${limit}&page=${page}`);
+            const res = await fetch(`${baseUrl}?limit=${limit}&page=${page}`);
             const data = await res.json();
             const items = data.data || [];
             todos = [...todos, ...items];
             if (todos.length >= data.total || items.length === 0) break;
             page++;
         }
+
         return todos;
     }
 
@@ -334,15 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const cacheKey = type;
 
             if (!itemCache[cacheKey]) {
-                let baseUrl;
-                if (type === 'armaduras') {
-                    baseUrl = `https://eldenring.fanapis.com/api/armors`;
-                } else if (type === 'armas') {
-                    baseUrl = 'https://eldenring.fanapis.com/api/weapons';
-                } else {
-                    baseUrl = 'https://eldenring.fanapis.com/api/talismans';
-                }
-                itemCache[cacheKey] = await fetchTodos(baseUrl);
+                itemCache[cacheKey] = await fetchTodos(cacheKey);
             }
 
             const items = itemCache[cacheKey];
@@ -386,7 +386,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 btn.type = 'button';
                 btn.className = 'option-item';
                 btn.innerHTML = `
-                    ${item.image ? `<img src="${item.image}" alt="${item.name}" class="item-img" onerror="this.style.display='none'">` : ''}
                     <span class="item-nombre">${item.name}</span>
                     ${item.weight ? `<span class="item-peso">Peso: ${item.weight}</span>` : ''}
                 `;
@@ -394,7 +393,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     const slotBtn = document.getElementById(slotActivo);
                     if (slotBtn) {
                         slotBtn.innerHTML = `
-                            ${item.image ? `<img src="${item.image}" alt="${item.name}" class="slot-img" onerror="this.style.display='none'">` : ''}
                             <span>${item.name}</span>
                         `;
                         slotBtn.dataset.itemId      = item.id;
@@ -500,21 +498,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saveBuildBtn) {
         saveBuildBtn.addEventListener('click', async () => {
             const buildData = getBuildData();
-            localStorage.setItem('eldenbook_build', JSON.stringify(buildData));
+            localStorage.setItem('buildplanner_build', JSON.stringify(buildData));
 
             if (auth.currentUser) {
                 try {
-                    const perfil = await obtenerPerfil();
-                    const isPremium = perfil?.isPremium || false;
-
-                    if (!isPremium) {
-                        const totalBuilds = await contarMisBuilds();
-                        if (totalBuilds >= 3) {
-                            abrirModal(document.getElementById('premium-modal'));
-                            return;
-                        }
-                    }
-
                     await guardarBuildFirestore(buildData);
                     saveBuildBtn.textContent = '✓ Guardado en la nube!';
                 } catch (e) {
@@ -618,9 +605,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeMisBuilds) closeMisBuilds.addEventListener('click', closeMisBuildModal);
 
     // ─── PREMIUM MODAL ────────────────────────────────────────────
-    const premiumModal    = document.getElementById('premium-modal');
-    const closePremiumBtn = document.getElementById('close-premium-modal');
-    if (closePremiumBtn) closePremiumBtn.addEventListener('click', () => cerrarModal(premiumModal));
+    // Removido
 
     // ─── AUTH UI ──────────────────────────────────────────────────
     const loginBtn     = document.getElementById('login-btn');
